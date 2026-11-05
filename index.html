@@ -133,7 +133,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Variables globales
     let jugadorSeleccionado = null;
     let equipoJugador = null;
     let equipoRival = null;
@@ -224,12 +223,8 @@
                 const fotoUrl = getFotoJugador(datosJugador.espn_id);
                 const dorsal = datosJugador.dorsal !== undefined ? datosJugador.dorsal : '-';
                 
-                const stringMatchup = sede === 'L' 
-                    ? `<img src="${getLogoEquipo(equipoPropio)}" class="cap-logo" crossorigin="anonymous"> vs <img src="${getLogoEquipo(rival)}" class="cap-logo" crossorigin="anonymous">` 
-                    : `<img src="${getLogoEquipo(equipoPropio)}" class="cap-logo" crossorigin="anonymous"> @ <img src="${getLogoEquipo(rival)}" class="cap-logo" crossorigin="anonymous">`;
-                
                 contenedor.innerHTML += `
-                    <div class="tarjeta-jugador" id="jug-${key}" onclick="seleccionarJugador('${key}', '${equipoPropio}', '${rival}', '${sede}', '${fotoUrl}', '${stringMatchup}')">
+                    <div class="tarjeta-jugador" id="jug-${key}" onclick="seleccionarJugador('${key}', '${equipoPropio}', '${rival}', '${sede}', '${fotoUrl}')">
                         <div class="dorsal">${dorsal}</div>
                         <img src="${fotoUrl}" class="foto-jugador" crossorigin="anonymous" onerror="this.src='https://cdn.nba.com/headshots/nba/latest/260x190/fallback.png'">
                         <div class="nombre-jugador">${nombreLimpio}</div>
@@ -248,13 +243,18 @@
         }
     };
 
-    window.seleccionarJugador = function(idJugador, idEquipoPropio, idEquipoRival, sede, urlFoto, textoMatchup) {
+    window.seleccionarJugador = function(idJugador, idEquipoPropio, idEquipoRival, sede, urlFoto) {
         jugadorSeleccionado = idJugador;
         equipoJugador = idEquipoPropio;
         equipoRival = idEquipoRival;
         sedeDelJugadorHoy = sede;
         fotoActual = urlFoto;
-        matchupActual = textoMatchup;
+        
+        const stringMatchup = sede === 'L' 
+            ? `<img src="${getLogoEquipo(idEquipoPropio)}" class="cap-logo" crossorigin="anonymous"> vs <img src="${getLogoEquipo(idEquipoRival)}" class="cap-logo" crossorigin="anonymous">` 
+            : `<img src="${getLogoEquipo(idEquipoPropio)}" class="cap-logo" crossorigin="anonymous"> @ <img src="${getLogoEquipo(idEquipoRival)}" class="cap-logo" crossorigin="anonymous">`;
+        
+        matchupActual = stringMatchup;
         
         document.querySelectorAll('.tarjeta-jugador').forEach(t => t.classList.remove('activa'));
         document.getElementById(`jug-${idJugador}`).classList.add('activa');
@@ -375,6 +375,5 @@
 </script>
 </body>
 </html>
-     
    
  
