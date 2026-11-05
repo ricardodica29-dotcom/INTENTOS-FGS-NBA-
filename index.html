@@ -19,16 +19,17 @@
         .tarjeta:hover { border-color: #b3b3b3; }
         .tarjeta.activa { border: 2px solid #cc4400; background-color: #fff9f2; }
         
-        .equipo-nombre { font-weight: bold; font-size: 16px; margin-bottom: 5px; display: flex; align-items: center; gap: 8px;}
-        .logo-equipo { width: 24px; height: 24px; object-fit: contain; }
-        .equipo-rol { font-size: 12px; color: #888; margin-left: 32px; margin-bottom: 15px;}
+        .equipo-nombre { font-weight: bold; font-size: 16px; margin-bottom: 5px; display: flex; align-items: center; gap: 10px;}
+        .logo-equipo { width: 30px; height: 30px; object-fit: contain; }
+        .equipo-rol { font-size: 12px; color: #888; margin-left: 40px; margin-bottom: 15px;}
         
-        .jugadores-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 15px; }
-        .tarjeta-jugador { background: #fff; border: 1px solid #e0dbd0; border-radius: 6px; padding: 10px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .jugadores-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 15px; }
+        .tarjeta-jugador { background: #fff; border: 1px solid #e0dbd0; border-radius: 8px; padding: 12px 8px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; }
         .tarjeta-jugador:hover { border-color: #b3b3b3; }
         .tarjeta-jugador.activa { border: 2px solid #cc4400; background-color: #fff9f2; }
-        .foto-jugador { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; background: #eee; margin-bottom: 8px; border: 1px solid #ddd; }
-        .nombre-jugador { font-size: 12px; font-weight: bold; color: #333; line-height: 1.2; }
+        .dorsal { position: absolute; top: -8px; left: -8px; background: #1a1a1a; color: #fff; font-size: 11px; font-weight: bold; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #fff;}
+        .foto-jugador { width: 75px; height: 55px; object-fit: contain; object-position: top; margin-bottom: 8px; border-bottom: 1px solid #eee; }
+        .nombre-jugador { font-size: 12px; font-weight: bold; color: #333; line-height: 1.2; text-transform: uppercase; }
         
         button { width: 100%; background: #1a1a1a; color: #fff; padding: 16px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; margin-top: 25px; cursor: pointer; }
         button:hover { background: #cc4400; }
@@ -37,15 +38,16 @@
         .resultado { display: none; background: #1a1a1a; color: #fff; padding: 25px; margin-top: 25px; text-align: center; font-size: 20px; border-radius: 8px; }
         .grid-resultados { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; }
         .caja-res { background: #2a2a2a; padding: 15px; border-radius: 8px; border: 1px solid #444; }
-        .caja-res span { font-size: 36px; font-weight: 900; color: #cc4400; display: block; margin-top: 5px; }
-        .caja-res small { font-size: 14px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+        .caja-res span { font-size: 38px; font-weight: 900; color: #cc4400; display: block; margin-top: 5px; }
+        .caja-res small { font-size: 12px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+        .formula-info { font-size: 12px; color: #888; margin-top: 15px; text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header-title">PROYECCIÓN FGA & 3PA</div>
-    <div class="header-subtitle">Toca un partido y un jugador para ver su proyección.</div>
+    <div class="header-title">VEGAS 3.0 - FGA PRO</div>
+    <div class="header-subtitle">Modelo Predictivo: Volumen x Ritmo x Racha</div>
     
     <div class="section-title">Jornada</div>
     <input type="date" id="fechaJuego" onchange="cargarPartidosDia()">
@@ -59,7 +61,7 @@
         <div class="section-title">Roster Local:</div>
         <div class="jugadores-grid" id="gridLocales"></div>
 
-        <button id="btnCalcular" onclick="lanzarProyeccion()">Lanzar Proyección</button>
+        <button id="btnCalcular" onclick="lanzarProyeccion()">Procesar Algoritmo Predictivo</button>
     </div>
 
     <div id="zonaResultado" class="resultado">
@@ -73,6 +75,7 @@
                 <span id="res3PA">0.0</span>
             </div>
         </div>
+        <div class="formula-info">Ponderación: 40% Temp + 40% Últimos 5 + 20% Sede x Ajuste Defensivo</div>
     </div>
 </div>
 
@@ -92,17 +95,28 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Variables globales para la matemática
+    // Variables globales
     let jugadorSeleccionado = null;
     let equipoJugador = null;
     let equipoRival = null;
+    let sedeDelJugadorHoy = null; // 'V' o 'L'
 
-    const getLogoEquipo = (idEquipo) => `https://a.espncdn.com/i/teamlogos/nba/500/${idEquipo}.png`;
-    const getFotoJugador = () => `https://cdn.nba.com/headshots/nba/latest/260x190/fallback.png`; 
-    const formatearAbreviatura = (idEquipo) => {
-        const parts = idEquipo.split('-');
-        return parts[parts.length - 1]; 
+    // Diccionario oficial ESPN
+    const espnTeams = {
+        "atlanta-hawks": "atl", "boston-celtics": "bos", "brooklyn-nets": "bkn",
+        "charlotte-hornets": "cha", "chicago-bulls": "chi", "cleveland-cavaliers": "cle",
+        "dallas-mavericks": "dal", "denver-nuggets": "den", "detroit-pistons": "det",
+        "golden-state-warriors": "gs", "houston-rockets": "hou", "indiana-pacers": "ind",
+        "la-clippers": "lac", "los-angeles-lakers": "lal", "memphis-grizzlies": "mem",
+        "miami-heat": "mia", "milwaukee-bucks": "mil", "minnesota-timberwolves": "min",
+        "new-orleans-pelicans": "no", "new-york-knicks": "ny", "oklahoma-city-thunder": "okc",
+        "orlando-magic": "orl", "philadelphia-76ers": "phi", "phoenix-suns": "phx",
+        "portland-trail-blazers": "por", "sacramento-kings": "sac", "san-antonio-spurs": "sa",
+        "toronto-raptors": "tor", "utah-jazz": "uta", "washington-wizards": "was"
     };
+
+    const getLogoEquipo = (idEquipo) => `https://a.espncdn.com/i/teamlogos/nba/500/${espnTeams[idEquipo] || 'nba'}.png`;
+    const getFotoJugador = (espnId) => espnId ? `https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/${espnId}.png&w=350&h=254` : `https://cdn.nba.com/headshots/nba/latest/260x190/fallback.png`; 
 
     window.onload = () => {
         document.getElementById('fechaJuego').valueAsDate = new Date();
@@ -124,21 +138,17 @@
             if (partidoSnap.exists()) {
                 const juegos = partidoSnap.data().juegos || [];
                 grid.innerHTML = '';
-                
-                if (juegos.length === 0) {
-                    grid.innerHTML = '<div style="grid-column: span 2; text-align:center;">No hay juegos programados.</div>';
-                    return;
-                }
+                if (juegos.length === 0) return grid.innerHTML = '<div style="grid-column: span 2; text-align:center;">No hay juegos programados.</div>';
 
                 juegos.forEach((juego, index) => {
-                    const logoVis = getLogoEquipo(formatearAbreviatura(juego.visitante));
-                    const logoLoc = getLogoEquipo(formatearAbreviatura(juego.local));
+                    const logoVis = getLogoEquipo(juego.visitante);
+                    const logoLoc = getLogoEquipo(juego.local);
                     
                     grid.innerHTML += `
                         <div class="tarjeta" id="tarjeta-${index}" onclick="seleccionarPartido(${index}, '${juego.visitante}', '${juego.local}')">
-                            <div class="equipo-nombre"><img src="${logoVis}" class="logo-equipo" onerror="this.src='https://cdn.nba.com/logos/nba/fallback.svg'"> ${juego.visitanteNombre}</div>
+                            <div class="equipo-nombre"><img src="${logoVis}" class="logo-equipo"> ${juego.visitanteNombre}</div>
                             <div class="equipo-rol">en</div>
-                            <div class="equipo-nombre"><img src="${logoLoc}" class="logo-equipo" onerror="this.src='https://cdn.nba.com/logos/nba/fallback.svg'"> ${juego.localNombre}</div>
+                            <div class="equipo-nombre"><img src="${logoLoc}" class="logo-equipo"> ${juego.localNombre}</div>
                         </div>
                     `;
                 });
@@ -170,117 +180,150 @@
 
             gridVis.innerHTML = ''; gridLoc.innerHTML = '';
 
-            const renderJugador = (key, contenedor, equipoPropio, rival) => {
+            const renderJugador = (key, datosJugador, contenedor, equipoPropio, rival, sede) => {
                 const nombreLimpio = key.replace(/-/g, ' ').toUpperCase();
+                const foto = getFotoJugador(datosJugador.espn_id);
+                const dorsal = datosJugador.dorsal !== undefined ? datosJugador.dorsal : '-';
+                
                 contenedor.innerHTML += `
-                    <div class="tarjeta-jugador" id="jug-${key}" onclick="seleccionarJugador('${key}', '${equipoPropio}', '${rival}')">
-                        <img src="${getFotoJugador()}" class="foto-jugador">
+                    <div class="tarjeta-jugador" id="jug-${key}" onclick="seleccionarJugador('${key}', '${equipoPropio}', '${rival}', '${sede}')">
+                        <div class="dorsal">${dorsal}</div>
+                        <img src="${foto}" class="foto-jugador" onerror="this.src='https://cdn.nba.com/headshots/nba/latest/260x190/fallback.png'">
                         <div class="nombre-jugador">${nombreLimpio}</div>
                     </div>
                 `;
             };
 
             if (visitSnap.exists() && visitSnap.data().jugadores) {
-                Object.keys(visitSnap.data().jugadores).forEach(key => renderJugador(key, gridVis, idVisitante, idLocal));
+                Object.entries(visitSnap.data().jugadores).forEach(([key, datos]) => renderJugador(key, datos, gridVis, idVisitante, idLocal, 'V'));
             }
             if (localSnap.exists() && localSnap.data().jugadores) {
-                Object.keys(localSnap.data().jugadores).forEach(key => renderJugador(key, gridLoc, idLocal, idVisitante));
+                Object.entries(localSnap.data().jugadores).forEach(([key, datos]) => renderJugador(key, datos, gridLoc, idLocal, idVisitante, 'L'));
             }
         } catch (error) {
             gridVis.innerHTML = 'Error al cargar'; gridLoc.innerHTML = 'Error al cargar';
         }
     };
 
-    window.seleccionarJugador = function(idJugador, idEquipoPropio, idEquipoRival) {
+    window.seleccionarJugador = function(idJugador, idEquipoPropio, idEquipoRival, sede) {
         jugadorSeleccionado = idJugador;
         equipoJugador = idEquipoPropio;
         equipoRival = idEquipoRival;
+        sedeDelJugadorHoy = sede;
+        
         document.querySelectorAll('.tarjeta-jugador').forEach(t => t.classList.remove('activa'));
         document.getElementById(`jug-${idJugador}`).classList.add('activa');
     };
 
+    // ----- FÓRMULA MATEMÁTICA AVANZADA -----
     window.lanzarProyeccion = async function() {
-        if (!jugadorSeleccionado) {
-            alert("Por favor selecciona un jugador haciendo clic en su tarjeta.");
-            return;
-        }
+        if (!jugadorSeleccionado) return alert("Por favor selecciona un jugador.");
 
         const boton = document.getElementById("btnCalcular");
         boton.disabled = true;
-        boton.innerHTML = 'Calculando métricas...';
+        boton.innerHTML = 'Procesando Algoritmo...';
 
         try {
-            // 1. Obtener historial del jugador
             const rosterRef = doc(db, "rosters", equipoJugador);
             const rosterSnap = await getDoc(rosterRef);
-            let avgMin = 0, avgFGA = 0, avg3PA = 0;
             
-            if (rosterSnap.exists()) {
-                const datosJugador = rosterSnap.data().jugadores[jugadorSeleccionado];
-                if (datosJugador && datosJugador.juegos) {
-                    let totalMin = 0, totalFGA = 0, total3PA = 0, juegosJugados = 0;
-                    
-                    for (const fecha in datosJugador.juegos) {
-                        const stats = datosJugador.juegos[fecha];
-                        if (stats.min > 0) { // Solo contar juegos donde sí participó
-                            totalMin += stats.min || 0;
-                            totalFGA += stats.fga || 0;
-                            total3PA += stats.fg3a || 0;
-                            juegosJugados++;
-                        }
-                    }
-                    if (juegosJugados > 0) {
-                        avgMin = totalMin / juegosJugados;
-                        avgFGA = totalFGA / juegosJugados;
-                        avg3PA = total3PA / juegosJugados;
-                    }
-                }
-            }
+            if (!rosterSnap.exists()) throw new Error("Roster no encontrado");
+            const datosJugador = rosterSnap.data().jugadores[jugadorSeleccionado];
+            if (!datosJugador || !datosJugador.juegos) throw new Error("Historial vacío");
 
-            // 2. Obtener historial defensivo del rival
+            // Convertir juegos en arreglo y ordenar por fecha (más reciente primero)
+            let historial = [];
+            for (const fecha in datosJugador.juegos) {
+                const stats = datosJugador.juegos[fecha];
+                if (stats.min > 0) historial.push({ fecha, ...stats }); // Solo partidos jugados
+            }
+            historial.sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+            if (historial.length === 0) throw new Error("0 Minutos jugados en la temporada");
+
+            // Acumuladores Temporada Completa
+            let sumMin = 0, sumFGA = 0, sum3PA = 0;
+            // Acumuladores Últimos 5
+            let l5Min = 0, l5FGA = 0, l53PA = 0, countL5 = 0;
+            // Acumuladores Sede (Local o Visitante)
+            let sedeMin = 0, sedeFGA = 0, sede3PA = 0, countSede = 0;
+
+            historial.forEach((g, idx) => {
+                // Temporada
+                sumMin += g.min; sumFGA += g.fga; sum3PA += g.fg3a || 0;
+                // Últimos 5
+                if (idx < 5) {
+                    l5Min += g.min; l5FGA += g.fga; l53PA += g.fg3a || 0;
+                    countL5++;
+                }
+                // Sede específica de hoy
+                if (g.sede === sedeDelJugadorHoy) {
+                    sedeMin += g.min; sedeFGA += g.fga; sede3PA += g.fg3a || 0;
+                    countSede++;
+                }
+            });
+
+            // Tiros por minuto (Ritmo puro)
+            const ppmTempFGA = sumMin > 0 ? (sumFGA / sumMin) : 0;
+            const ppmTemp3PA = sumMin > 0 ? (sum3PA / sumMin) : 0;
+            
+            const ppmL5FGA = l5Min > 0 ? (l5FGA / l5Min) : ppmTempFGA;
+            const ppmL53PA = l5Min > 0 ? (l53PA / l5Min) : ppmTemp3PA;
+            
+            const ppmSedeFGA = sedeMin > 0 ? (sedeFGA / sedeMin) : ppmTempFGA;
+            const ppmSede3PA = sedeMin > 0 ? (sede3PA / sedeMin) : ppmTemp3PA;
+
+            // Fórmula Ponderada (40% Temp, 40% Racha, 20% Sede)
+            const ritmoFGA = (ppmTempFGA * 0.4) + (ppmL5FGA * 0.4) + (ppmSedeFGA * 0.2);
+            const ritmo3PA = (ppmTemp3PA * 0.4) + (ppmL53PA * 0.4) + (ppmSede3PA * 0.2);
+
+            // Minutos esperados (Promedio de los últimos 5 juegos)
+            const minEsperados = l5Min > 0 ? (l5Min / countL5) : (sumMin / historial.length);
+
+            // Proyección Base
+            let projRawFGA = ritmoFGA * minEsperados;
+            let projRaw3PA = ritmo3PA * minEsperados;
+
+            // Analisis Defensivo del Rival
             const rivalRef = doc(db, "equipos", equipoRival);
             const rivalSnap = await getDoc(rivalRef);
-            let rivalAvgFgaAllowed = 89; // Promedio NBA por defecto
-            let rivalAvg3paAllowed = 35; // Promedio NBA por defecto
+            
+            let multDefFGA = 1.0; 
+            let multDef3PA = 1.0;
 
-            if (rivalSnap.exists()) {
-                const juegosRival = rivalSnap.data().juegos;
-                if (juegosRival) {
-                    let totalFgaAllowed = 0, total3paAllowed = 0, juegosRivJugados = 0;
-                    for (const fecha in juegosRival) {
-                        const statsDef = juegosRival[fecha];
-                        if (statsDef.fga_allowed) {
-                            totalFgaAllowed += statsDef.fga_allowed;
-                            total3paAllowed += statsDef.fg3a_allowed || (statsDef.fga_allowed * 0.4); 
-                            juegosRivJugados++;
-                        }
+            if (rivalSnap.exists() && rivalSnap.data().juegos) {
+                let sumFgaAllowed = 0, sum3paAllowed = 0, countRiv = 0;
+                for (const f in rivalSnap.data().juegos) {
+                    const rStats = rivalSnap.data().juegos[f];
+                    if (rStats.fga_allowed) {
+                        sumFgaAllowed += rStats.fga_allowed;
+                        sum3paAllowed += rStats.fg3a_allowed || (rStats.fga_allowed * 0.4);
+                        countRiv++;
                     }
-                    if (juegosRivJugados > 0) {
-                        rivalAvgFgaAllowed = totalFgaAllowed / juegosRivJugados;
-                        rivalAvg3paAllowed = total3paAllowed / juegosRivJugados;
-                    }
+                }
+                if (countRiv > 0) {
+                    const avgFgaAll = sumFgaAllowed / countRiv;
+                    const avg3paAll = sum3paAllowed / countRiv;
+                    // Comparar contra el estándar de la NBA (~89 FGA y ~35 3PA)
+                    multDefFGA = avgFgaAll / 89.0;
+                    multDef3PA = avg3paAll / 35.0;
                 }
             }
 
-            // 3. Matemática de proyección final
-            // Promedio del jugador * Multiplicador Defensivo del Rival
-            const fgaMultiplier = rivalAvgFgaAllowed / 89; // Compara contra la media de la liga (~89 tiros)
-            const p3Multiplier = rivalAvg3paAllowed / 35;  // Compara contra la media de triples (~35 triples)
+            // Proyección Final Ajustada
+            const proyeccionFGA = projRawFGA * multDefFGA;
+            const proyeccion3PA = projRaw3PA * multDef3PA;
 
-            const fgaProyectado = avgFGA * fgaMultiplier;
-            const p3Proyectado = avg3PA * p3Multiplier;
-
-            // 4. Mostrar en pantalla
-            document.getElementById("resFGA").innerText = fgaProyectado > 0 ? fgaProyectado.toFixed(1) : "N/D";
-            document.getElementById("res3PA").innerText = p3Proyectado > 0 ? p3Proyectado.toFixed(1) : "N/D";
+            document.getElementById("resFGA").innerText = proyeccionFGA.toFixed(1);
+            document.getElementById("res3PA").innerText = proyeccion3PA.toFixed(1);
             document.getElementById("zonaResultado").style.display = "block";
 
         } catch (error) {
             console.error(error);
-            alert("Error al calcular las métricas.");
+            alert("Error: " + error.message);
         } finally {
             boton.disabled = false;
-            boton.innerHTML = 'Lanzar Proyección';
+            boton.innerHTML = 'Procesar Algoritmo Predictivo';
         }
     }
 </script>
