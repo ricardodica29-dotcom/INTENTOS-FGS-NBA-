@@ -29,20 +29,12 @@
 
     <label for="selectRival">Equipo Rival:</label>
     <select id="selectRival">
-        <option value="">-- Selecciona el equipo rival --</option>
-        <option value="atlanta-hawks">Atlanta Hawks</option>
-        <option value="boston-celtics">Boston Celtics</option>
-        <option value="chicago-bulls">Chicago Bulls</option>
-        <option value="los-angeles-lakers">Los Angeles Lakers</option>
-        <!-- Agrega los demás IDs exactos de tu colección de equipos -->
+        <option value="">Cargando equipos desde Firebase...</option>
     </select>
 
     <label for="selectJugador">Jugador a proyectar:</label>
     <select id="selectJugador">
-        <option value="">-- Selecciona el jugador --</option>
-        <option value="lebron-james">LeBron James</option>
-        <option value="jayson-tatum">Jayson Tatum</option>
-        <!-- Agrega los IDs de tus jugadores -->
+        <option value="">Cargando jugadores desde Firebase...</option>
     </select>
 
     <button id="btnCalcular" onclick="obtenerDatosYProyectar()">Lanzar Proyección</button>
@@ -53,10 +45,10 @@
 </div>
 
 <script type="module">
+    // Agregamos getDocs y collection para poder traer las listas completas
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Configuración real extraída de tu captura de pantalla
     const firebaseConfig = {
         apiKey: "AIzaSyCVkgWnZa83EjXsLCMt9YxHVq6d6Nnrw7I",
         authDomain: "dica-nba.firebaseapp.com",
@@ -69,6 +61,35 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+
+    // FUNCIÓN NUEVA: Se ejecuta al abrir la página para llenar los <select> automáticamente
+    window.onload = async function() {
+        const selectEquipos = document.getElementById("selectRival");
+        const selectJugadores = document.getElementById("selectJugador");
+
+        try {
+            // Traer todos los documentos de la colección "equipos"
+            const equiposSnap = await getDocs(collection(db, "equipos"));
+            selectEquipos.innerHTML = '<option value="">-- Selecciona el equipo rival --</option>';
+            equiposSnap.forEach((doc) => {
+                // doc.id es el nombre del documento (ej. "atlanta-hawks")
+                selectEquipos.innerHTML += `<option value="${doc.id}">${doc.id}</option>`;
+            });
+
+            // Traer todos los documentos de la colección "jugadores"
+            // (Asegúrate de que tu colección de jugadores se llame exactamente "jugadores")
+            const jugadoresSnap = await getDocs(collection(db, "jugadores"));
+            selectJugadores.innerHTML = '<option value="">-- Selecciona el jugador --</option>';
+            jugadoresSnap.forEach((doc) => {
+                selectJugadores.innerHTML += `<option value="${doc.id}">${doc.id}</option>`;
+            });
+            
+        } catch (error) {
+            console.error("Error al cargar las listas:", error);
+            selectEquipos.innerHTML = '<option value="">Error al cargar equipos</option>';
+            selectJugadores.innerHTML = '<option value="">Error al cargar jugadores</option>';
+        }
+    };
 
     window.obtenerDatosYProyectar = async function() {
         const jugadorId = document.getElementById("selectJugador").value;
@@ -85,8 +106,7 @@
         boton.innerHTML = 'Consultando Firebase...';
 
         try {
-            // Consulta a tus colecciones
-            const jugadorRef = doc(db, "jugadores", jugadorId); // Asegúrate de que tienes una colección "jugadores"
+            const jugadorRef = doc(db, "jugadores", jugadorId); 
             const jugadorSnap = await getDoc(jugadorRef);
 
             const rivalRef = doc(db, "equipos", rivalId); 
@@ -96,25 +116,18 @@
                 const datosJug = jugadorSnap.data();
                 const datosRiv = rivalSnap.data();
 
-                // Navegando a la estadística exacta según tu estructura de base de datos
-                const statsJuegoRival = datosRiv.juegos[fechaId];
+                const statsJuegoRival = datosRiv.juegos ? datosRiv.juegos[fechaId] : null;
                 
                 if(!statsJuegoRival) {
-                    alert("No hay estadísticas del rival para esa fecha.");
+                    alert("No hay estadísticas del rival para esa fecha (" + fechaId + ").");
                     return;
                 }
 
-                // --- AJUSTA ESTOS NOMBRES SEGÚN LOS DATOS DE TU COLECCIÓN DE JUGADORES ---
-                // Aquí asumo que tienes fga_promedio y minutos_promedio en el documento del jugador
+                // Matemática de proyección
                 const fgaPorMinuto = (datosJug.fga_promedio || 15) / (datosJug.minutos_promedio || 30);
-                
-                // Extraemos los tiros permitidos usando la estructura que me mostraste
-                // En tu imagen vi fg3a_allowed (triples), reemplázalo por el campo de tiros totales si lo tienes (ej. fga_allowed)
                 const tirosPermitidosRival = statsJuegoRival.fg3a_allowed || 90; 
-                
-                const ajusteDefensa = tirosPermitidosRival / 90; // 90 como media liga
+                const ajusteDefensa = tirosPermitidosRival / 90; 
 
-                // Cálculo final
                 const proyeccionFinal = fgaPorMinuto * (datosJug.minutos_promedio || 30) * ajusteDefensa;
 
                 document.getElementById("resultadoProyeccion").innerText = proyeccionFinal.toFixed(1);
@@ -133,3 +146,4 @@
 </script>
 </body>
 </html>
+      
