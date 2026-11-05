@@ -92,20 +92,16 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // Variables globales para la matemática
     let jugadorSeleccionado = null;
+    let equipoJugador = null;
+    let equipoRival = null;
 
-    // Utilidades para logos y fotos (usando la API pública de ESPN)
     const getLogoEquipo = (idEquipo) => `https://a.espncdn.com/i/teamlogos/nba/500/${idEquipo}.png`;
-    const getFotoJugador = (idJugador) => {
-        // Extraer el ID numérico de ESPN si está en tu DB, si no, usa un avatar por defecto.
-        // Aquí asumimos que idJugador tiene el formato "lebron-james-123" o similar. 
-        // Como no tengo tu ID exacto de ESPN, usaré la foto genérica de NBA para que no haya errores, 
-        // pero puedes reemplazar "headshots" por la variable de tu DB.
-        return `https://cdn.nba.com/headshots/nba/latest/260x190/fallback.png`; 
-    };
+    const getFotoJugador = () => `https://cdn.nba.com/headshots/nba/latest/260x190/fallback.png`; 
     const formatearAbreviatura = (idEquipo) => {
         const parts = idEquipo.split('-');
-        return parts[parts.length - 1]; // Extrae "lakers" de "los-angeles-lakers" para armar el logo
+        return parts[parts.length - 1]; 
     };
 
     window.onload = () => {
@@ -174,29 +170,31 @@
 
             gridVis.innerHTML = ''; gridLoc.innerHTML = '';
 
-            const renderJugador = (key, contenedor) => {
+            const renderJugador = (key, contenedor, equipoPropio, rival) => {
                 const nombreLimpio = key.replace(/-/g, ' ').toUpperCase();
                 contenedor.innerHTML += `
-                    <div class="tarjeta-jugador" id="jug-${key}" onclick="seleccionarJugador('${key}')">
-                        <img src="${getFotoJugador(key)}" class="foto-jugador">
+                    <div class="tarjeta-jugador" id="jug-${key}" onclick="seleccionarJugador('${key}', '${equipoPropio}', '${rival}')">
+                        <img src="${getFotoJugador()}" class="foto-jugador">
                         <div class="nombre-jugador">${nombreLimpio}</div>
                     </div>
                 `;
             };
 
             if (visitSnap.exists() && visitSnap.data().jugadores) {
-                Object.keys(visitSnap.data().jugadores).forEach(key => renderJugador(key, gridVis));
+                Object.keys(visitSnap.data().jugadores).forEach(key => renderJugador(key, gridVis, idVisitante, idLocal));
             }
             if (localSnap.exists() && localSnap.data().jugadores) {
-                Object.keys(localSnap.data().jugadores).forEach(key => renderJugador(key, gridLoc));
+                Object.keys(localSnap.data().jugadores).forEach(key => renderJugador(key, gridLoc, idLocal, idVisitante));
             }
         } catch (error) {
             gridVis.innerHTML = 'Error al cargar'; gridLoc.innerHTML = 'Error al cargar';
         }
     };
 
-    window.seleccionarJugador = function(idJugador) {
+    window.seleccionarJugador = function(idJugador, idEquipoPropio, idEquipoRival) {
         jugadorSeleccionado = idJugador;
+        equipoJugador = idEquipoPropio;
+        equipoRival = idEquipoRival;
         document.querySelectorAll('.tarjeta-jugador').forEach(t => t.classList.remove('activa'));
         document.getElementById(`jug-${idJugador}`).classList.add('activa');
     };
@@ -211,18 +209,80 @@
         boton.disabled = true;
         boton.innerHTML = 'Calculando métricas...';
 
-        setTimeout(() => {
-            document.getElementById("resFGA").innerText = "18.5"; // Placeholder matemática
-            document.getElementById("res3PA").innerText = "7.2";  // Placeholder triples
+        try {
+            // 1. Obtener historial del jugador
+            const rosterRef = doc(db, "rosters", equipoJugador);
+            const rosterSnap = await getDoc(rosterRef);
+            let avgMin = 0, avgFGA = 0, avg3PA = 0;
+            
+            if (rosterSnap.exists()) {
+                const datosJugador = rosterSnap.data().jugadores[jugadorSeleccionado];
+                if (datosJugador && datosJugador.juegos) {
+                    let totalMin = 0, totalFGA = 0, total3PA = 0, juegosJugados = 0;
+                    
+                    for (const fecha in datosJugador.juegos) {
+                        const stats = datosJugador.juegos[fecha];
+                        if (stats.min > 0) { // Solo contar juegos donde sí participó
+                            totalMin += stats.min || 0;
+                            totalFGA += stats.fga || 0;
+                            total3PA += stats.fg3a || 0;
+                            juegosJugados++;
+                        }
+                    }
+                    if (juegosJugados > 0) {
+                        avgMin = totalMin / juegosJugados;
+                        avgFGA = totalFGA / juegosJugados;
+                        avg3PA = total3PA / juegosJugados;
+                    }
+                }
+            }
+
+            // 2. Obtener historial defensivo del rival
+            const rivalRef = doc(db, "equipos", equipoRival);
+            const rivalSnap = await getDoc(rivalRef);
+            let rivalAvgFgaAllowed = 89; // Promedio NBA por defecto
+            let rivalAvg3paAllowed = 35; // Promedio NBA por defecto
+
+            if (rivalSnap.exists()) {
+                const juegosRival = rivalSnap.data().juegos;
+                if (juegosRival) {
+                    let totalFgaAllowed = 0, total3paAllowed = 0, juegosRivJugados = 0;
+                    for (const fecha in juegosRival) {
+                        const statsDef = juegosRival[fecha];
+                        if (statsDef.fga_allowed) {
+                            totalFgaAllowed += statsDef.fga_allowed;
+                            total3paAllowed += statsDef.fg3a_allowed || (statsDef.fga_allowed * 0.4); 
+                            juegosRivJugados++;
+                        }
+                    }
+                    if (juegosRivJugados > 0) {
+                        rivalAvgFgaAllowed = totalFgaAllowed / juegosRivJugados;
+                        rivalAvg3paAllowed = total3paAllowed / juegosRivJugados;
+                    }
+                }
+            }
+
+            // 3. Matemática de proyección final
+            // Promedio del jugador * Multiplicador Defensivo del Rival
+            const fgaMultiplier = rivalAvgFgaAllowed / 89; // Compara contra la media de la liga (~89 tiros)
+            const p3Multiplier = rivalAvg3paAllowed / 35;  // Compara contra la media de triples (~35 triples)
+
+            const fgaProyectado = avgFGA * fgaMultiplier;
+            const p3Proyectado = avg3PA * p3Multiplier;
+
+            // 4. Mostrar en pantalla
+            document.getElementById("resFGA").innerText = fgaProyectado > 0 ? fgaProyectado.toFixed(1) : "N/D";
+            document.getElementById("res3PA").innerText = p3Proyectado > 0 ? p3Proyectado.toFixed(1) : "N/D";
             document.getElementById("zonaResultado").style.display = "block";
+
+        } catch (error) {
+            console.error(error);
+            alert("Error al calcular las métricas.");
+        } finally {
             boton.disabled = false;
             boton.innerHTML = 'Lanzar Proyección';
-        }, 1000);
+        }
     }
 </script>
 </body>
 </html>
-    
-
- 
-    
