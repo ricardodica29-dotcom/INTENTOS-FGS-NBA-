@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora FGA - DICA NBA</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f6efe6; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 600px; margin: auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-top: 5px solid #cc4400; }
+        .header { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px; }
+        h1 { color: #1a1a1a; margin: 0; font-size: 24px; }
+        label { font-weight: 600; display: block; margin-top: 20px; color: #444; }
+        select, input { width: 100%; padding: 12px; margin-top: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; background-color: #fafafa; box-sizing: border-box; }
+        button { width: 100%; background: #1a1a1a; color: #fff; padding: 16px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; margin-top: 25px; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #cc4400; }
+        button:disabled { background: #888; cursor: not-allowed; }
+        .resultado { display: none; background: #fff4e6; border-left: 5px solid #cc4400; padding: 20px; margin-top: 25px; text-align: center; font-size: 22px; font-weight: bold; border-radius: 0 6px 6px 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>DICA NBA - Proyección de Tiros</h1>
+    </div>
+    
+    <label for="fechaJuego">Fecha del juego (Formato YYYY-MM-DD):</label>
+    <input type="text" id="fechaJuego" placeholder="Ej: 2026-10-21" value="2026-10-21">
+
+    <label for="selectRival">Equipo Rival:</label>
+    <select id="selectRival">
+        <option value="">-- Selecciona el equipo rival --</option>
+        <option value="atlanta-hawks">Atlanta Hawks</option>
+        <option value="boston-celtics">Boston Celtics</option>
+        <option value="chicago-bulls">Chicago Bulls</option>
+        <option value="los-angeles-lakers">Los Angeles Lakers</option>
+        <!-- Agrega los demás IDs exactos de tu colección de equipos -->
+    </select>
+
+    <label for="selectJugador">Jugador a proyectar:</label>
+    <select id="selectJugador">
+        <option value="">-- Selecciona el jugador --</option>
+        <option value="lebron-james">LeBron James</option>
+        <option value="jayson-tatum">Jayson Tatum</option>
+        <!-- Agrega los IDs de tus jugadores -->
+    </select>
+
+    <button id="btnCalcular" onclick="obtenerDatosYProyectar()">Lanzar Proyección</button>
+
+    <div id="zonaResultado" class="resultado">
+        Tiros Intentados (FGA) Esperados:<br> <span id="resultadoProyeccion" style="font-size: 32px; color: #cc4400; display: block; margin-top: 10px;"></span>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Configuración real extraída de tu captura de pantalla
+    const firebaseConfig = {
+        apiKey: "AIzaSyCVkgWnZa83EjXsLCMt9YxHVq6d6Nnrw7I",
+        authDomain: "dica-nba.firebaseapp.com",
+        projectId: "dica-nba",
+        storageBucket: "dica-nba.firebasestorage.app",
+        messagingSenderId: "224764762732",
+        appId: "1:224764762732:web:7042fe57c93275c0549649",
+        measurementId: "G-QBH1GF7Q1D"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.obtenerDatosYProyectar = async function() {
+        const jugadorId = document.getElementById("selectJugador").value;
+        const rivalId = document.getElementById("selectRival").value;
+        const fechaId = document.getElementById("fechaJuego").value;
+        const boton = document.getElementById("btnCalcular");
+        
+        if (!jugadorId || !rivalId || !fechaId) {
+            alert("Llena todos los campos.");
+            return;
+        }
+
+        boton.disabled = true;
+        boton.innerHTML = 'Consultando Firebase...';
+
+        try {
+            // Consulta a tus colecciones
+            const jugadorRef = doc(db, "jugadores", jugadorId); // Asegúrate de que tienes una colección "jugadores"
+            const jugadorSnap = await getDoc(jugadorRef);
+
+            const rivalRef = doc(db, "equipos", rivalId); 
+            const rivalSnap = await getDoc(rivalRef);
+
+            if (jugadorSnap.exists() && rivalSnap.exists()) {
+                const datosJug = jugadorSnap.data();
+                const datosRiv = rivalSnap.data();
+
+                // Navegando a la estadística exacta según tu estructura de base de datos
+                const statsJuegoRival = datosRiv.juegos[fechaId];
+                
+                if(!statsJuegoRival) {
+                    alert("No hay estadísticas del rival para esa fecha.");
+                    return;
+                }
+
+                // --- AJUSTA ESTOS NOMBRES SEGÚN LOS DATOS DE TU COLECCIÓN DE JUGADORES ---
+                // Aquí asumo que tienes fga_promedio y minutos_promedio en el documento del jugador
+                const fgaPorMinuto = (datosJug.fga_promedio || 15) / (datosJug.minutos_promedio || 30);
+                
+                // Extraemos los tiros permitidos usando la estructura que me mostraste
+                // En tu imagen vi fg3a_allowed (triples), reemplázalo por el campo de tiros totales si lo tienes (ej. fga_allowed)
+                const tirosPermitidosRival = statsJuegoRival.fg3a_allowed || 90; 
+                
+                const ajusteDefensa = tirosPermitidosRival / 90; // 90 como media liga
+
+                // Cálculo final
+                const proyeccionFinal = fgaPorMinuto * (datosJug.minutos_promedio || 30) * ajusteDefensa;
+
+                document.getElementById("resultadoProyeccion").innerText = proyeccionFinal.toFixed(1);
+                document.getElementById("zonaResultado").style.display = "block";
+            } else {
+                alert("No se encontró el documento del jugador o del equipo.");
+            }
+        } catch (error) {
+            console.error("Error conectando a Firebase:", error);
+            alert("Error al leer los datos. Revisa la consola para más detalles.");
+        } finally {
+            boton.disabled = false;
+            boton.innerHTML = 'Lanzar Proyección';
+        }
+    }
+</script>
+</body>
+</html>
