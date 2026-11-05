@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Proyección de Tiros - DICA NBA</title>
+    <!-- Librería para tomar foto a la pantalla -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3efe5; margin: 0; padding: 20px; color: #333; }
         .container { max-width: 800px; margin: auto; }
-        .header-title { font-size: 32px; font-weight: 900; color: #1a1a1a; margin-bottom: 5px; text-transform: uppercase; }
-        .header-subtitle { font-size: 15px; color: #666; margin-top: 0; margin-bottom: 25px; }
+        .header-title { font-size: 36px; font-weight: 900; color: #1a1a1a; margin-bottom: 5px; text-transform: uppercase; letter-spacing: -1px; }
+        .header-subtitle { font-size: 15px; color: #cc4400; margin-top: 0; margin-bottom: 25px; font-weight: bold; }
         .section-title { font-size: 14px; font-weight: bold; color: #555; margin-bottom: 10px; margin-top: 25px; }
         input[type="date"] { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #dcd6cc; font-size: 16px; background-color: #fffcf7; outline: none; }
         
@@ -31,23 +33,38 @@
         .foto-jugador { width: 75px; height: 55px; object-fit: contain; object-position: top; margin-bottom: 8px; border-bottom: 1px solid #eee; }
         .nombre-jugador { font-size: 12px; font-weight: bold; color: #333; line-height: 1.2; text-transform: uppercase; }
         
-        button { width: 100%; background: #1a1a1a; color: #fff; padding: 16px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; margin-top: 25px; cursor: pointer; }
-        button:hover { background: #cc4400; }
+        button { width: 100%; background: #1a1a1a; color: #fff; padding: 16px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; margin-top: 25px; cursor: pointer; transition: all 0.2s; }
+        button:hover { background: #333; }
         button:disabled { background: #888; cursor: not-allowed; }
         
-        .resultado { display: none; background: #1a1a1a; color: #fff; padding: 25px; margin-top: 25px; text-align: center; font-size: 20px; border-radius: 8px; }
-        .grid-resultados { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; }
-        .caja-res { background: #2a2a2a; padding: 15px; border-radius: 8px; border: 1px solid #444; }
-        .caja-res span { font-size: 38px; font-weight: 900; color: #cc4400; display: block; margin-top: 5px; }
-        .caja-res small { font-size: 12px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
-        .formula-info { font-size: 12px; color: #888; margin-top: 15px; text-align: center; }
+        #btnCompartir { background: #cc4400; margin-top: 15px; }
+        #btnCompartir:hover { background: #e64d00; }
+
+        /* DISEÑO DE LA TARJETA SOCIAL (Para captura) */
+        .resultado-container { display: none; margin-top: 25px; }
+        .capture-box { background: #151515; padding: 30px; border-radius: 12px; position: relative; overflow: hidden; }
+        .cap-header { color: #cc4400; font-weight: 900; font-size: 18px; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .cap-fecha { float: right; color: #888; font-weight: normal; font-size: 14px; margin-top: 2px; }
+        
+        .cap-perfil { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; }
+        .cap-foto-wrapper { width: 90px; height: 90px; border-radius: 50%; border: 3px solid #cc4400; overflow: hidden; background: #fff; display: flex; align-items: flex-end; justify-content: center; }
+        .cap-foto { width: 100%; height: 90%; object-fit: contain; object-position: bottom; }
+        .cap-nombre { font-size: 26px; font-weight: 900; color: #fff; text-transform: uppercase; margin-bottom: 5px; }
+        .cap-matchup { font-size: 16px; color: #aaa; display: flex; align-items: center; gap: 8px; }
+        .cap-logo { width: 22px; height: 22px; object-fit: contain; }
+        
+        .grid-resultados { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .caja-res { background: #222; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; }
+        .caja-res span { font-size: 42px; font-weight: 900; color: #cc4400; display: block; margin-top: 5px; }
+        .caja-res small { font-size: 13px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+        .formula-info { font-size: 11px; color: #666; margin-top: 25px; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header-title">VEGAS 3.0 - FGA PRO</div>
-    <div class="header-subtitle">Modelo Predictivo: Volumen x Ritmo x Racha</div>
+    <div class="header-title">DICA NBA</div>
+    <div class="header-subtitle">Vegas 3.0 • Modelo Predictivo de Tiros (FGA & 3PA)</div>
     
     <div class="section-title">Jornada</div>
     <input type="date" id="fechaJuego" onchange="cargarPartidosDia()">
@@ -64,18 +81,39 @@
         <button id="btnCalcular" onclick="lanzarProyeccion()">Procesar Algoritmo Predictivo</button>
     </div>
 
-    <div id="zonaResultado" class="resultado">
-        <div class="grid-resultados">
-            <div class="caja-res">
-                <small>Tiros Totales (FGA)</small>
-                <span id="resFGA">0.0</span>
+    <div id="zonaResultado" class="resultado-container">
+        <!-- ÁREA QUE SE CONVERTIRÁ EN IMAGEN -->
+        <div id="captureArea" class="capture-box">
+            <div class="cap-header">
+                DICA NBA <span style="color:#fff;">| PROYECCIONES</span>
+                <span class="cap-fecha" id="capFecha">00/00/00</span>
             </div>
-            <div class="caja-res">
-                <small>Triples (3PA)</small>
-                <span id="res3PA">0.0</span>
+            
+            <div class="cap-perfil">
+                <div class="cap-foto-wrapper">
+                    <img id="capFoto" src="" class="cap-foto" crossorigin="anonymous">
+                </div>
+                <div>
+                    <div class="cap-nombre" id="capNombre">Nombre Jugador</div>
+                    <div class="cap-matchup" id="capMatchup">VS Rival</div>
+                </div>
             </div>
+
+            <div class="grid-resultados">
+                <div class="caja-res">
+                    <small>Tiros (FGA)</small>
+                    <span id="resFGA">0.0</span>
+                </div>
+                <div class="caja-res">
+                    <small>Triples (3PA)</small>
+                    <span id="res3PA">0.0</span>
+                </div>
+            </div>
+            <div class="formula-info">Analítica Avanzada DICA NBA • Vegas 3.0</div>
         </div>
-        <div class="formula-info">Ponderación: 40% Temp + 40% Últimos 5 + 20% Sede x Ajuste Defensivo</div>
+        
+        <!-- BOTÓN DE DESCARGA -->
+        <button id="btnCompartir" onclick="descargarImagen()">📸 Descargar Imagen para Redes</button>
     </div>
 </div>
 
@@ -99,9 +137,10 @@
     let jugadorSeleccionado = null;
     let equipoJugador = null;
     let equipoRival = null;
-    let sedeDelJugadorHoy = null; // 'V' o 'L'
+    let sedeDelJugadorHoy = null; 
+    let fotoActual = "";
+    let matchupActual = "";
 
-    // Diccionario oficial ESPN
     const espnTeams = {
         "atlanta-hawks": "atl", "boston-celtics": "bos", "brooklyn-nets": "bkn",
         "charlotte-hornets": "cha", "chicago-bulls": "chi", "cleveland-cavaliers": "cle",
@@ -146,9 +185,9 @@
                     
                     grid.innerHTML += `
                         <div class="tarjeta" id="tarjeta-${index}" onclick="seleccionarPartido(${index}, '${juego.visitante}', '${juego.local}')">
-                            <div class="equipo-nombre"><img src="${logoVis}" class="logo-equipo"> ${juego.visitanteNombre}</div>
+                            <div class="equipo-nombre"><img src="${logoVis}" class="logo-equipo" crossorigin="anonymous"> ${juego.visitanteNombre}</div>
                             <div class="equipo-rol">en</div>
-                            <div class="equipo-nombre"><img src="${logoLoc}" class="logo-equipo"> ${juego.localNombre}</div>
+                            <div class="equipo-nombre"><img src="${logoLoc}" class="logo-equipo" crossorigin="anonymous"> ${juego.localNombre}</div>
                         </div>
                     `;
                 });
@@ -182,13 +221,17 @@
 
             const renderJugador = (key, datosJugador, contenedor, equipoPropio, rival, sede) => {
                 const nombreLimpio = key.replace(/-/g, ' ').toUpperCase();
-                const foto = getFotoJugador(datosJugador.espn_id);
+                const fotoUrl = getFotoJugador(datosJugador.espn_id);
                 const dorsal = datosJugador.dorsal !== undefined ? datosJugador.dorsal : '-';
                 
+                const stringMatchup = sede === 'L' 
+                    ? `<img src="${getLogoEquipo(equipoPropio)}" class="cap-logo" crossorigin="anonymous"> vs <img src="${getLogoEquipo(rival)}" class="cap-logo" crossorigin="anonymous">` 
+                    : `<img src="${getLogoEquipo(equipoPropio)}" class="cap-logo" crossorigin="anonymous"> @ <img src="${getLogoEquipo(rival)}" class="cap-logo" crossorigin="anonymous">`;
+                
                 contenedor.innerHTML += `
-                    <div class="tarjeta-jugador" id="jug-${key}" onclick="seleccionarJugador('${key}', '${equipoPropio}', '${rival}', '${sede}')">
+                    <div class="tarjeta-jugador" id="jug-${key}" onclick="seleccionarJugador('${key}', '${equipoPropio}', '${rival}', '${sede}', '${fotoUrl}', '${stringMatchup}')">
                         <div class="dorsal">${dorsal}</div>
-                        <img src="${foto}" class="foto-jugador" onerror="this.src='https://cdn.nba.com/headshots/nba/latest/260x190/fallback.png'">
+                        <img src="${fotoUrl}" class="foto-jugador" crossorigin="anonymous" onerror="this.src='https://cdn.nba.com/headshots/nba/latest/260x190/fallback.png'">
                         <div class="nombre-jugador">${nombreLimpio}</div>
                     </div>
                 `;
@@ -205,17 +248,18 @@
         }
     };
 
-    window.seleccionarJugador = function(idJugador, idEquipoPropio, idEquipoRival, sede) {
+    window.seleccionarJugador = function(idJugador, idEquipoPropio, idEquipoRival, sede, urlFoto, textoMatchup) {
         jugadorSeleccionado = idJugador;
         equipoJugador = idEquipoPropio;
         equipoRival = idEquipoRival;
         sedeDelJugadorHoy = sede;
+        fotoActual = urlFoto;
+        matchupActual = textoMatchup;
         
         document.querySelectorAll('.tarjeta-jugador').forEach(t => t.classList.remove('activa'));
         document.getElementById(`jug-${idJugador}`).classList.add('activa');
     };
 
-    // ----- FÓRMULA MATEMÁTICA AVANZADA -----
     window.lanzarProyeccion = async function() {
         if (!jugadorSeleccionado) return alert("Por favor selecciona un jugador.");
 
@@ -226,106 +270,111 @@
         try {
             const rosterRef = doc(db, "rosters", equipoJugador);
             const rosterSnap = await getDoc(rosterRef);
-            
             if (!rosterSnap.exists()) throw new Error("Roster no encontrado");
             const datosJugador = rosterSnap.data().jugadores[jugadorSeleccionado];
-            if (!datosJugador || !datosJugador.juegos) throw new Error("Historial vacío");
-
-            // Convertir juegos en arreglo y ordenar por fecha (más reciente primero)
+            
             let historial = [];
-            for (const fecha in datosJugador.juegos) {
-                const stats = datosJugador.juegos[fecha];
-                if (stats.min > 0) historial.push({ fecha, ...stats }); // Solo partidos jugados
+            if(datosJugador && datosJugador.juegos) {
+                for (const f in datosJugador.juegos) {
+                    if (datosJugador.juegos[f].min > 0) historial.push({ fecha: f, ...datosJugador.juegos[f] });
+                }
             }
             historial.sort((a, b) => b.fecha.localeCompare(a.fecha));
 
-            if (historial.length === 0) throw new Error("0 Minutos jugados en la temporada");
-
-            // Acumuladores Temporada Completa
             let sumMin = 0, sumFGA = 0, sum3PA = 0;
-            // Acumuladores Últimos 5
             let l5Min = 0, l5FGA = 0, l53PA = 0, countL5 = 0;
-            // Acumuladores Sede (Local o Visitante)
             let sedeMin = 0, sedeFGA = 0, sede3PA = 0, countSede = 0;
 
             historial.forEach((g, idx) => {
-                // Temporada
                 sumMin += g.min; sumFGA += g.fga; sum3PA += g.fg3a || 0;
-                // Últimos 5
-                if (idx < 5) {
-                    l5Min += g.min; l5FGA += g.fga; l53PA += g.fg3a || 0;
-                    countL5++;
-                }
-                // Sede específica de hoy
-                if (g.sede === sedeDelJugadorHoy) {
-                    sedeMin += g.min; sedeFGA += g.fga; sede3PA += g.fg3a || 0;
-                    countSede++;
-                }
+                if (idx < 5) { l5Min += g.min; l5FGA += g.fga; l53PA += g.fg3a || 0; countL5++; }
+                if (g.sede === sedeDelJugadorHoy) { sedeMin += g.min; sedeFGA += g.fga; sede3PA += g.fg3a || 0; countSede++; }
             });
 
-            // Tiros por minuto (Ritmo puro)
             const ppmTempFGA = sumMin > 0 ? (sumFGA / sumMin) : 0;
             const ppmTemp3PA = sumMin > 0 ? (sum3PA / sumMin) : 0;
-            
             const ppmL5FGA = l5Min > 0 ? (l5FGA / l5Min) : ppmTempFGA;
             const ppmL53PA = l5Min > 0 ? (l53PA / l5Min) : ppmTemp3PA;
-            
             const ppmSedeFGA = sedeMin > 0 ? (sedeFGA / sedeMin) : ppmTempFGA;
             const ppmSede3PA = sedeMin > 0 ? (sede3PA / sedeMin) : ppmTemp3PA;
 
-            // Fórmula Ponderada (40% Temp, 40% Racha, 20% Sede)
             const ritmoFGA = (ppmTempFGA * 0.4) + (ppmL5FGA * 0.4) + (ppmSedeFGA * 0.2);
             const ritmo3PA = (ppmTemp3PA * 0.4) + (ppmL53PA * 0.4) + (ppmSede3PA * 0.2);
+            const minEsperados = l5Min > 0 ? (l5Min / countL5) : (sumMin > 0 ? sumMin / historial.length : 30);
 
-            // Minutos esperados (Promedio de los últimos 5 juegos)
-            const minEsperados = l5Min > 0 ? (l5Min / countL5) : (sumMin / historial.length);
-
-            // Proyección Base
             let projRawFGA = ritmoFGA * minEsperados;
             let projRaw3PA = ritmo3PA * minEsperados;
 
-            // Analisis Defensivo del Rival
             const rivalRef = doc(db, "equipos", equipoRival);
             const rivalSnap = await getDoc(rivalRef);
             
-            let multDefFGA = 1.0; 
-            let multDef3PA = 1.0;
-
+            let multDefFGA = 1.0, multDef3PA = 1.0;
             if (rivalSnap.exists() && rivalSnap.data().juegos) {
-                let sumFgaAllowed = 0, sum3paAllowed = 0, countRiv = 0;
+                let sumFgaAll = 0, sum3paAll = 0, countRiv = 0;
                 for (const f in rivalSnap.data().juegos) {
                     const rStats = rivalSnap.data().juegos[f];
                     if (rStats.fga_allowed) {
-                        sumFgaAllowed += rStats.fga_allowed;
-                        sum3paAllowed += rStats.fg3a_allowed || (rStats.fga_allowed * 0.4);
+                        sumFgaAll += rStats.fga_allowed;
+                        sum3paAll += rStats.fg3a_allowed || (rStats.fga_allowed * 0.4);
                         countRiv++;
                     }
                 }
                 if (countRiv > 0) {
-                    const avgFgaAll = sumFgaAllowed / countRiv;
-                    const avg3paAll = sum3paAllowed / countRiv;
-                    // Comparar contra el estándar de la NBA (~89 FGA y ~35 3PA)
-                    multDefFGA = avgFgaAll / 89.0;
-                    multDef3PA = avg3paAll / 35.0;
+                    multDefFGA = (sumFgaAll / countRiv) / 89.0;
+                    multDef3PA = (sum3paAll / countRiv) / 35.0;
                 }
             }
 
-            // Proyección Final Ajustada
-            const proyeccionFGA = projRawFGA * multDefFGA;
-            const proyeccion3PA = projRaw3PA * multDef3PA;
+            const proyeccionFGA = projRawFGA > 0 ? (projRawFGA * multDefFGA).toFixed(1) : "N/D";
+            const proyeccion3PA = projRaw3PA > 0 ? (projRaw3PA * multDef3PA).toFixed(1) : "N/D";
 
-            document.getElementById("resFGA").innerText = proyeccionFGA.toFixed(1);
-            document.getElementById("res3PA").innerText = proyeccion3PA.toFixed(1);
+            document.getElementById("capFecha").innerText = document.getElementById("fechaJuego").value;
+            document.getElementById("capNombre").innerText = jugadorSeleccionado.replace(/-/g, ' ');
+            document.getElementById("capMatchup").innerHTML = matchupActual;
+            document.getElementById("capFoto").src = fotoActual;
+            
+            document.getElementById("resFGA").innerText = proyeccionFGA;
+            document.getElementById("res3PA").innerText = proyeccion3PA;
+            
             document.getElementById("zonaResultado").style.display = "block";
 
         } catch (error) {
-            console.error(error);
             alert("Error: " + error.message);
         } finally {
             boton.disabled = false;
             boton.innerHTML = 'Procesar Algoritmo Predictivo';
         }
+    };
+
+    window.descargarImagen = function() {
+        const btn = document.getElementById("btnCompartir");
+        const originalText = btn.innerHTML;
+        btn.innerHTML = "Generando imagen de alta calidad...";
+        btn.disabled = true;
+
+        html2canvas(document.getElementById("captureArea"), {
+            useCORS: true,
+            allowTaint: false,
+            backgroundColor: "#151515",
+            scale: 2 
+        }).then(canvas => {
+            const link = document.createElement("a");
+            link.download = `Proyeccion_DICA_${jugadorSeleccionado.toUpperCase()}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+            
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }).catch(err => {
+            console.error(err);
+            alert("Hubo un problema al generar la imagen. Intenta desde la computadora.");
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
     }
 </script>
 </body>
 </html>
+     
+   
+ 
