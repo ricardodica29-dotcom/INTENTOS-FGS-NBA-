@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -450,13 +449,14 @@
 
                 if (snapUid.exists()) {
                     const data = snapUid.data();
-                    fechaVencimiento = data.vencimiento_fga || data.vencimiento || null;
+                    // AQUÍ ESTÁ EL CAMBIO IMPORTANTE: Ahora busca "vence_fga" o "vence"
+                    fechaVencimiento = data.vence_fga || data.vence || null;
                 } else {
                     const q = query(collection(db, "acceso_usuarios"), where("email", "==", user.email));
                     const snapQuery = await getDocs(q);
                     if (!snapQuery.empty) {
                         const data = snapQuery.docs[0].data();
-                        fechaVencimiento = data.vencimiento_fga || data.vencimiento || null;
+                        fechaVencimiento = data.vence_fga || data.vence || null;
                     }
                 }
 
@@ -692,7 +692,7 @@
         }
     </script>
 </body>
-</html>        
+</html>
     
 
  
