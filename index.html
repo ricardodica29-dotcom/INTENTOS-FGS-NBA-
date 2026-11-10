@@ -6,13 +6,227 @@
     <title>Proyección de Tiros - DICA NBA</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a1a1a">
-    <!-- Librería para tomar foto a la pantalla -->
+    <!-- Librería para capturar imagen -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3efe5; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 800px; margin: auto; }
-        .header-title { font-size: 36px; font-weight: 900; color: #1a1a1a; margin-bottom: 5px; text-transform: uppercase; letter-spacing: -1px; }
-        .header-subtitle { font-size: 15px; color: #cc4400; margin-top: 0; margin-bottom: 25px; font-weight: bold; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #efe3cf;
+            background-image: repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0,0,0,0.03) 40px, rgba(0,0,0,0.03) 41px);
+            margin: 0; 
+            padding: 20px; 
+            color: #333; 
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* --- 1. PANTALLA LOGIN --- */
+        #authContainer {
+            max-width: 380px;
+            margin: 40px auto;
+            text-align: center;
+        }
+        .login-logo {
+            width: 90px;
+            height: 90px;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            margin-bottom: 12px;
+        }
+        .login-brand {
+            font-size: 38px;
+            font-weight: 900;
+            color: #1a1a1a;
+            letter-spacing: 1px;
+            margin: 0;
+            line-height: 1;
+        }
+        .login-author {
+            font-size: 13px;
+            color: #555;
+            font-weight: 600;
+            margin-top: 6px;
+            margin-bottom: 24px;
+        }
+        .login-card {
+            background: #fff;
+            border: 1px solid #dcd3c1;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+            text-align: left;
+        }
+        .login-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #444;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .login-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #dcd6cc;
+            border-radius: 6px;
+            font-size: 15px;
+            background-color: #fffcf7;
+            box-sizing: border-box;
+            outline: none;
+            margin-bottom: 16px;
+        }
+        .login-input:focus { border-color: #c84414; }
+        .btn-entrar {
+            width: 100%;
+            background: #c84414;
+            color: #fff;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: 900;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: background 0.2s;
+        }
+        .btn-entrar:hover { background: #ab360d; }
+        .login-footer-text {
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+            margin: 20px 0 10px 0;
+        }
+        .btn-whatsapp-login {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            background: #0f8a44;
+            color: #fff;
+            padding: 14px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 800;
+            text-decoration: none;
+            box-sizing: border-box;
+            letter-spacing: 0.5px;
+            transition: background 0.2s;
+        }
+        .btn-whatsapp-login:hover { background: #0c6e37; }
+        .login-error {
+            color: #c84414;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            display: none;
+            text-align: center;
+        }
+
+        /* --- 2. PANTALLA BLOQUEO (SIN ACCESO ACTIVO) --- */
+        #expiredContainer {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #0c0d0e;
+            z-index: 9999;
+            padding: 30px 20px;
+            box-sizing: border-box;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #fff;
+        }
+        .lock-badge {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(229, 160, 23, 0.12);
+            border: 2px solid rgba(229, 160, 23, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            font-size: 36px;
+        }
+        .expired-title {
+            font-size: 26px;
+            font-weight: 900;
+            color: #f7dfa5;
+            margin-bottom: 15px;
+            letter-spacing: -0.5px;
+        }
+        .expired-desc {
+            font-size: 15px;
+            color: #a0a5ad;
+            line-height: 1.5;
+            max-width: 320px;
+            margin-bottom: 35px;
+        }
+        .btn-whatsapp-expired {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 340px;
+            background: #25d366;
+            color: #fff;
+            padding: 16px 20px;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 800;
+            text-decoration: none;
+            box-sizing: border-box;
+            box-shadow: 0 4px 14px rgba(37, 211, 102, 0.25);
+            transition: transform 0.15s, opacity 0.15s;
+        }
+        .btn-whatsapp-expired:hover { opacity: 0.95; }
+        .phone-indicator {
+            font-size: 13px;
+            color: #555b66;
+            margin-top: 14px;
+            font-weight: 600;
+        }
+        .btn-logout-expired {
+            background: transparent;
+            color: #6c7380;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 35px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-logout-expired:hover { color: #fff; text-decoration: underline; }
+
+        /* --- 3. PANTALLA PRINCIPAL DE LA APP --- */
+        #appContainer {
+            display: none;
+            max-width: 800px;
+            margin: auto;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .header-title { font-size: 32px; font-weight: 900; color: #1a1a1a; margin: 0; text-transform: uppercase; letter-spacing: -1px; }
+        .header-subtitle { font-size: 14px; color: #cc4400; margin-top: 2px; font-weight: bold; }
+        .btn-cerrar-sesion {
+            background: #2a2a2a;
+            color: #fff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-cerrar-sesion:hover { background: #444; }
+
         .section-title { font-size: 14px; font-weight: bold; color: #555; margin-bottom: 10px; margin-top: 25px; }
         input[type="date"] { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #dcd6cc; font-size: 16px; background-color: #fffcf7; outline: none; }
         
@@ -35,14 +249,15 @@
         .foto-jugador { width: 75px; height: 55px; object-fit: contain; object-position: top; margin-bottom: 8px; border-bottom: 1px solid #eee; }
         .nombre-jugador { font-size: 12px; font-weight: bold; color: #333; line-height: 1.2; text-transform: uppercase; }
         
-        button { width: 100%; background: #1a1a1a; color: #fff; padding: 16px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; margin-top: 25px; cursor: pointer; transition: all 0.2s; }
-        button:hover { background: #333; }
-        button:disabled { background: #888; cursor: not-allowed; }
+        .btn-accion { width: 100%; background: #1a1a1a; color: #fff; padding: 16px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; margin-top: 25px; cursor: pointer; transition: all 0.2s; }
+        .btn-accion:hover { background: #333; }
+        .btn-accion:disabled { background: #888; cursor: not-allowed; }
         
-        #btnCompartir { background: #cc4400; margin-top: 15px; }
+        /* Botón oculto por defecto, se activa desde JS solo para el admin */
+        #btnCompartir { background: #cc4400; margin-top: 15px; display: none; }
         #btnCompartir:hover { background: #e64d00; }
 
-        /* DISEÑO DE LA TARJETA SOCIAL (Para captura) */
+        /* TARJETA SOCIAL */
         .resultado-container { display: none; margin-top: 25px; }
         .capture-box { background: #151515; padding: 30px; border-radius: 12px; position: relative; overflow: hidden; }
         .cap-header { color: #cc4400; font-weight: 900; font-size: 18px; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #333; padding-bottom: 10px; }
@@ -64,318 +279,423 @@
 </head>
 <body>
 
-<div class="container">
-    <div class="header-title">DICA NBA</div>
-    <div class="header-subtitle">Vegas 3.0 • Modelo Predictivo de Tiros (FGA & 3PA)</div>
-    
-    <div class="section-title">Jornada</div>
-    <input type="date" id="fechaJuego" onchange="cargarPartidosDia()">
+    <!-- 1. VISTA DE INICIO DE SESIÓN -->
+    <div id="authContainer">
+        <img src="icon-192.png" alt="DICA NBA" class="login-logo" onerror="this.src='https://cdn.nba.com/logos/nba/fallback.svg'">
+        <h1 class="login-brand">DICA NBA</h1>
+        <div class="login-author">By: Ricardo Dionicio</div>
 
-    <div class="grid-tarjetas" id="gridPartidos"></div>
+        <div class="login-card">
+            <div id="loginError" class="login-error"></div>
 
-    <div id="zonaProyeccion" style="display: none;">
-        <div class="section-title">Roster Visitante:</div>
-        <div class="jugadores-grid" id="gridVisitantes"></div>
-        
-        <div class="section-title">Roster Local:</div>
-        <div class="jugadores-grid" id="gridLocales"></div>
+            <label class="login-label">Correo electrónico</label>
+            <input type="email" id="txtEmail" class="login-input" placeholder="correo@ejemplo.com" autocomplete="email">
 
-        <button id="btnCalcular" onclick="lanzarProyeccion()">Procesar Algoritmo Predictivo</button>
+            <label class="login-label">Contraseña</label>
+            <input type="password" id="txtPassword" class="login-input" placeholder="••••••••" autocomplete="current-password">
+
+            <button type="button" class="btn-entrar" id="btnEntrar" onclick="iniciarSesion()">ENTRAR</button>
+        </div>
+
+        <div class="login-footer-text">¿Todavía no tienes cuenta?</div>
+        <a href="https://wa.me/527298812937?text=Hola,%20me%20gustar%C3%ADa%20pedir%20informes%20para%20acceder%20a%20DICA%20NBA" target="_blank" class="btn-whatsapp-login">
+            <span>💬</span> PEDIR INFORMES
+        </a>
     </div>
 
-    <div id="zonaResultado" class="resultado-container">
-        <!-- ÁREA QUE SE CONVERTIRÁ EN IMAGEN -->
-        <div id="captureArea" class="capture-box">
-            <div class="cap-header">
-                DICA NBA <span style="color:#fff;">| PROYECCIONES</span>
-                <span class="cap-fecha" id="capFecha">00/00/00</span>
-            </div>
-            
-            <div class="cap-perfil">
-                <div class="cap-foto-wrapper">
-                    <img id="capFoto" src="" class="cap-foto" crossorigin="anonymous">
-                </div>
-                <div>
-                    <div class="cap-nombre" id="capNombre">Nombre Jugador</div>
-                    <div class="cap-matchup" id="capMatchup">VS Rival</div>
-                </div>
-            </div>
+    <!-- 2. VISTA DE SUSCRIPCIÓN EXPIRADA / BLOQUEADA -->
+    <div id="expiredContainer">
+        <div class="lock-badge">🔒</div>
+        <div class="expired-title">Sin acceso activo</div>
+        <div class="expired-desc">Tu cuenta todavía no tiene una suscripción activa. Escríbeme por WhatsApp para activarla.</div>
 
-            <div class="grid-resultados">
-                <div class="caja-res">
-                    <small>Tiros (FGA)</small>
-                    <span id="resFGA">0.0</span>
-                </div>
-                <div class="caja-res">
-                    <small>Triples (3PA)</small>
-                    <span id="res3PA">0.0</span>
-                </div>
+        <a href="https://wa.me/527298812937?text=Hola%20Ricardo,%20quiero%20activar/renovar%20mi%20suscripci%C3%B3n%20para%20DICA%20FGA" target="_blank" class="btn-whatsapp-expired">
+            <span>💬</span> Escribir por WhatsApp
+        </a>
+        <div class="phone-indicator">+52 729 881 2937</div>
+
+        <button type="button" class="btn-logout-expired" onclick="cerrarSesion()">Cerrar sesión</button>
+    </div>
+
+    <!-- 3. VISTA PRINCIPAL DE PROYECCIÓN -->
+    <div id="appContainer">
+        <div class="top-bar">
+            <div>
+                <div class="header-title">DICA NBA</div>
+                <div class="header-subtitle">Vegas 3.0 • Modelo Predictivo de Tiros (FGA & 3PA)</div>
             </div>
-            <div class="formula-info">Analítica Avanzada DICA NBA • Vegas 3.0</div>
+            <button class="btn-cerrar-sesion" onclick="cerrarSesion()">Cerrar sesión</button>
         </div>
         
-        <!-- BOTÓN DE DESCARGA -->
-        <button id="btnCompartir" onclick="descargarImagen()">📸 Descargar Imagen para Redes</button>
-    </div>
-</div>
+        <div class="section-title">Jornada</div>
+        <input type="date" id="fechaJuego" onchange="cargarPartidosDia()">
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        <div class="grid-tarjetas" id="gridPartidos"></div>
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyCVkgWnZa83EjXsLCMt9YxHVq6d6Nnrw7I",
-        authDomain: "dica-nba.firebaseapp.com",
-        projectId: "dica-nba",
-        storageBucket: "dica-nba.firebasestorage.app",
-        messagingSenderId: "224764762732",
-        appId: "1:224764762732:web:7042fe57c93275c0549649"
-    };
+        <div id="zonaProyeccion" style="display: none;">
+            <div class="section-title">Roster Visitante:</div>
+            <div class="jugadores-grid" id="gridVisitantes"></div>
+            
+            <div class="section-title">Roster Local:</div>
+            <div class="jugadores-grid" id="gridLocales"></div>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+            <button class="btn-accion" id="btnCalcular" onclick="lanzarProyeccion()">Procesar Algoritmo Predictivo</button>
+        </div>
 
-    let jugadorSeleccionado = null;
-    let equipoJugador = null;
-    let equipoRival = null;
-    let sedeDelJugadorHoy = null; 
-    let fotoActual = "";
-    let matchupActual = "";
-
-    const espnTeams = {
-        "atlanta-hawks": "atl", "boston-celtics": "bos", "brooklyn-nets": "bkn",
-        "charlotte-hornets": "cha", "chicago-bulls": "chi", "cleveland-cavaliers": "cle",
-        "dallas-mavericks": "dal", "denver-nuggets": "den", "detroit-pistons": "det",
-        "golden-state-warriors": "gs", "houston-rockets": "hou", "indiana-pacers": "ind",
-        "la-clippers": "lac", "los-angeles-lakers": "lal", "memphis-grizzlies": "mem",
-        "miami-heat": "mia", "milwaukee-bucks": "mil", "minnesota-timberwolves": "min",
-        "new-orleans-pelicans": "no", "new-york-knicks": "ny", "oklahoma-city-thunder": "okc",
-        "orlando-magic": "orl", "philadelphia-76ers": "phi", "phoenix-suns": "phx",
-        "portland-trail-blazers": "por", "sacramento-kings": "sac", "san-antonio-spurs": "sa",
-        "toronto-raptors": "tor", "utah-jazz": "uta", "washington-wizards": "was"
-    };
-
-    const getLogoEquipo = (idEquipo) => `https://a.espncdn.com/i/teamlogos/nba/500/${espnTeams[idEquipo] || 'nba'}.png`;
-    const getFotoJugador = (espnId) => espnId ? `https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/${espnId}.png&w=350&h=254` : `https://cdn.nba.com/headshots/nba/latest/260x190/fallback.png`; 
-
-    window.onload = () => {
-        document.getElementById('fechaJuego').valueAsDate = new Date();
-        cargarPartidosDia();
-    };
-
-    window.cargarPartidosDia = async function() {
-        const fecha = document.getElementById("fechaJuego").value;
-        const grid = document.getElementById("gridPartidos");
-        
-        document.getElementById('zonaProyeccion').style.display = 'none';
-        document.getElementById('zonaResultado').style.display = 'none';
-        grid.innerHTML = '<div style="grid-column: span 2; text-align:center;">Buscando partidos...</div>';
-
-        try {
-            const partidoRef = doc(db, "partidos_dia", fecha);
-            const partidoSnap = await getDoc(partidoRef);
-
-            if (partidoSnap.exists()) {
-                const juegos = partidoSnap.data().juegos || [];
-                grid.innerHTML = '';
-                if (juegos.length === 0) return grid.innerHTML = '<div style="grid-column: span 2; text-align:center;">No hay juegos programados.</div>';
-
-                juegos.forEach((juego, index) => {
-                    const logoVis = getLogoEquipo(juego.visitante);
-                    const logoLoc = getLogoEquipo(juego.local);
-                    
-                    grid.innerHTML += `
-                        <div class="tarjeta" id="tarjeta-${index}" onclick="seleccionarPartido(${index}, '${juego.visitante}', '${juego.local}')">
-                            <div class="equipo-nombre"><img src="${logoVis}" class="logo-equipo" crossorigin="anonymous"> ${juego.visitanteNombre}</div>
-                            <div class="equipo-rol">en</div>
-                            <div class="equipo-nombre"><img src="${logoLoc}" class="logo-equipo" crossorigin="anonymous"> ${juego.localNombre}</div>
-                        </div>
-                    `;
-                });
-            } else {
-                grid.innerHTML = '<div style="grid-column: span 2; text-align:center;">No se encontró la jornada.</div>';
-            }
-        } catch (error) {
-            grid.innerHTML = '<div style="color:red; grid-column: span 2;">Error de conexión.</div>';
-        }
-    };
-
-    window.seleccionarPartido = async function(index, idVisitante, idLocal) {
-        document.querySelectorAll('#gridPartidos .tarjeta').forEach(t => t.classList.remove('activa'));
-        document.getElementById(`tarjeta-${index}`).classList.add('activa');
-
-        document.getElementById('zonaProyeccion').style.display = 'block';
-        document.getElementById('zonaResultado').style.display = 'none';
-        jugadorSeleccionado = null;
-
-        const gridVis = document.getElementById("gridVisitantes");
-        const gridLoc = document.getElementById("gridLocales");
-        gridVis.innerHTML = 'Cargando...'; gridLoc.innerHTML = 'Cargando...';
-
-        try {
-            const [visitSnap, localSnap] = await Promise.all([
-                getDoc(doc(db, "rosters", idVisitante)),
-                getDoc(doc(db, "rosters", idLocal))
-            ]);
-
-            gridVis.innerHTML = ''; gridLoc.innerHTML = '';
-
-            const renderJugador = (key, datosJugador, contenedor, equipoPropio, rival, sede) => {
-                const nombreLimpio = key.replace(/-/g, ' ').toUpperCase();
-                const fotoUrl = getFotoJugador(datosJugador.espn_id);
-                const dorsal = datosJugador.dorsal !== undefined ? datosJugador.dorsal : '-';
+        <div id="zonaResultado" class="resultado-container">
+            <div id="captureArea" class="capture-box">
+                <div class="cap-header">
+                    DICA NBA <span style="color:#fff;">| PROYECCIONES</span>
+                    <span class="cap-fecha" id="capFecha">00/00/00</span>
+                </div>
                 
-                contenedor.innerHTML += `
-                    <div class="tarjeta-jugador" id="jug-${key}" onclick="seleccionarJugador('${key}', '${equipoPropio}', '${rival}', '${sede}', '${fotoUrl}')">
-                        <div class="dorsal">${dorsal}</div>
-                        <img src="${fotoUrl}" class="foto-jugador" crossorigin="anonymous" onerror="this.src='https://cdn.nba.com/headshots/nba/latest/260x190/fallback.png'">
-                        <div class="nombre-jugador">${nombreLimpio}</div>
+                <div class="cap-perfil">
+                    <div class="cap-foto-wrapper">
+                        <img id="capFoto" src="" class="cap-foto" crossorigin="anonymous">
                     </div>
-                `;
-            };
+                    <div>
+                        <div class="cap-nombre" id="capNombre">Nombre Jugador</div>
+                        <div class="cap-matchup" id="capMatchup">VS Rival</div>
+                    </div>
+                </div>
 
-            if (visitSnap.exists() && visitSnap.data().jugadores) {
-                Object.entries(visitSnap.data().jugadores).forEach(([key, datos]) => renderJugador(key, datos, gridVis, idVisitante, idLocal, 'V'));
-            }
-            if (localSnap.exists() && localSnap.data().jugadores) {
-                Object.entries(localSnap.data().jugadores).forEach(([key, datos]) => renderJugador(key, datos, gridLoc, idLocal, idVisitante, 'L'));
-            }
-        } catch (error) {
-            gridVis.innerHTML = 'Error al cargar'; gridLoc.innerHTML = 'Error al cargar';
-        }
-    };
-
-    window.seleccionarJugador = function(idJugador, idEquipoPropio, idEquipoRival, sede, urlFoto) {
-        jugadorSeleccionado = idJugador;
-        equipoJugador = idEquipoPropio;
-        equipoRival = idEquipoRival;
-        sedeDelJugadorHoy = sede;
-        fotoActual = urlFoto;
-        
-        const stringMatchup = sede === 'L' 
-            ? `<img src="${getLogoEquipo(idEquipoPropio)}" class="cap-logo" crossorigin="anonymous"> vs <img src="${getLogoEquipo(idEquipoRival)}" class="cap-logo" crossorigin="anonymous">` 
-            : `<img src="${getLogoEquipo(idEquipoPropio)}" class="cap-logo" crossorigin="anonymous"> @ <img src="${getLogoEquipo(idEquipoRival)}" class="cap-logo" crossorigin="anonymous">`;
-        
-        matchupActual = stringMatchup;
-        
-        document.querySelectorAll('.tarjeta-jugador').forEach(t => t.classList.remove('activa'));
-        document.getElementById(`jug-${idJugador}`).classList.add('activa');
-    };
-
-    window.lanzarProyeccion = async function() {
-        if (!jugadorSeleccionado) return alert("Por favor selecciona un jugador.");
-
-        const boton = document.getElementById("btnCalcular");
-        boton.disabled = true;
-        boton.innerHTML = 'Procesando Algoritmo...';
-
-        try {
-            const rosterRef = doc(db, "rosters", equipoJugador);
-            const rosterSnap = await getDoc(rosterRef);
-            if (!rosterSnap.exists()) throw new Error("Roster no encontrado");
-            const datosJugador = rosterSnap.data().jugadores[jugadorSeleccionado];
+                <div class="grid-resultados">
+                    <div class="caja-res">
+                        <small>Tiros (FGA)</small>
+                        <span id="resFGA">0.0</span>
+                    </div>
+                    <div class="caja-res">
+                        <small>Triples (3PA)</small>
+                        <span id="res3PA">0.0</span>
+                    </div>
+                </div>
+                <div class="formula-info">Analítica Avanzada DICA NBA • Vegas 3.0</div>
+            </div>
             
-            let historial = [];
-            if(datosJugador && datosJugador.juegos) {
-                for (const f in datosJugador.juegos) {
-                    if (datosJugador.juegos[f].min > 0) historial.push({ fecha: f, ...datosJugador.juegos[f] });
+            <!-- Botón exclusivo para admin -->
+            <button id="btnCompartir" class="btn-accion" onclick="descargarImagen()">📸 Exportar Tarjeta para Redes</button>
+        </div>
+    </div>
+
+    <!-- SCRIPT FIREBASE CON CONTROL DE ACCESO Y CAPTURA MOVIL -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVkgWnZa83EjXsLCMt9YxHVq6d6Nnrw7I",
+            authDomain: "dica-nba.firebaseapp.com",
+            projectId: "dica-nba",
+            storageBucket: "dica-nba.firebasestorage.app",
+            messagingSenderId: "224764762732",
+            appId: "1:224764762732:web:7042fe57c93275c0549649"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        function tieneMembresiaActiva(fechaStr) {
+            if (!fechaStr) return false;
+            let dia, mes, anio;
+
+            if (fechaStr.includes('/')) {
+                const partes = fechaStr.split('/');
+                dia = parseInt(partes[0], 10);
+                mes = parseInt(partes[1], 10) - 1;
+                anio = parseInt(partes[2], 10);
+            } else if (fechaStr.includes('-')) {
+                const partes = fechaStr.split('-');
+                if (partes[0].length === 4) {
+                    anio = parseInt(partes[0], 10);
+                    mes = parseInt(partes[1], 10) - 1;
+                    dia = parseInt(partes[2], 10);
+                } else {
+                    dia = parseInt(partes[0], 10);
+                    mes = parseInt(partes[1], 10) - 1;
+                    anio = parseInt(partes[2], 10);
                 }
+            } else { return false; }
+
+            const fechaVencimiento = new Date(anio, mes, dia, 0, 0, 0);
+            return new Date() < fechaVencimiento;
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            const authContainer = document.getElementById("authContainer");
+            const appContainer = document.getElementById("appContainer");
+            const expiredContainer = document.getElementById("expiredContainer");
+            const btnCompartir = document.getElementById("btnCompartir");
+
+            if (!user) {
+                authContainer.style.display = "block";
+                appContainer.style.display = "none";
+                expiredContainer.style.display = "none";
+                btnCompartir.style.display = "none";
+                return;
             }
-            historial.sort((a, b) => b.fecha.localeCompare(a.fecha));
 
-            let sumMin = 0, sumFGA = 0, sum3PA = 0;
-            let l5Min = 0, l5FGA = 0, l53PA = 0, countL5 = 0;
-            let sedeMin = 0, sedeFGA = 0, sede3PA = 0, countSede = 0;
+            // Validar si es el administrador
+            if (user.email === "ricardodica29@gmail.com") {
+                btnCompartir.style.display = "block";
+            } else {
+                btnCompartir.style.display = "none";
+            }
 
-            historial.forEach((g, idx) => {
-                sumMin += g.min; sumFGA += g.fga; sum3PA += g.fg3a || 0;
-                if (idx < 5) { l5Min += g.min; l5FGA += g.fga; l53PA += g.fg3a || 0; countL5++; }
-                if (g.sede === sedeDelJugadorHoy) { sedeMin += g.min; sedeFGA += g.fga; sede3PA += g.fg3a || 0; countSede++; }
-            });
+            try {
+                let fechaVencimiento = null;
+                const docRefUid = doc(db, "acceso_usuarios", user.uid);
+                const snapUid = await getDoc(docRefUid);
 
-            const ppmTempFGA = sumMin > 0 ? (sumFGA / sumMin) : 0;
-            const ppmTemp3PA = sumMin > 0 ? (sum3PA / sumMin) : 0;
-            const ppmL5FGA = l5Min > 0 ? (l5FGA / l5Min) : ppmTempFGA;
-            const ppmL53PA = l5Min > 0 ? (l53PA / l5Min) : ppmTemp3PA;
-            const ppmSedeFGA = sedeMin > 0 ? (sedeFGA / sedeMin) : ppmTempFGA;
-            const ppmSede3PA = sedeMin > 0 ? (sede3PA / sedeMin) : ppmTemp3PA;
-
-            const ritmoFGA = (ppmTempFGA * 0.4) + (ppmL5FGA * 0.4) + (ppmSedeFGA * 0.2);
-            const ritmo3PA = (ppmTemp3PA * 0.4) + (ppmL53PA * 0.4) + (ppmSede3PA * 0.2);
-            const minEsperados = l5Min > 0 ? (l5Min / countL5) : (sumMin > 0 ? sumMin / historial.length : 30);
-
-            let projRawFGA = ritmoFGA * minEsperados;
-            let projRaw3PA = ritmo3PA * minEsperados;
-
-            const rivalRef = doc(db, "equipos", equipoRival);
-            const rivalSnap = await getDoc(rivalRef);
-            
-            let multDefFGA = 1.0, multDef3PA = 1.0;
-            if (rivalSnap.exists() && rivalSnap.data().juegos) {
-                let sumFgaAll = 0, sum3paAll = 0, countRiv = 0;
-                for (const f in rivalSnap.data().juegos) {
-                    const rStats = rivalSnap.data().juegos[f];
-                    if (rStats.fga_allowed) {
-                        sumFgaAll += rStats.fga_allowed;
-                        sum3paAll += rStats.fg3a_allowed || (rStats.fga_allowed * 0.4);
-                        countRiv++;
+                if (snapUid.exists()) {
+                    const data = snapUid.data();
+                    fechaVencimiento = data.vencimiento_fga || data.vencimiento || null;
+                } else {
+                    const q = query(collection(db, "acceso_usuarios"), where("email", "==", user.email));
+                    const snapQuery = await getDocs(q);
+                    if (!snapQuery.empty) {
+                        const data = snapQuery.docs[0].data();
+                        fechaVencimiento = data.vencimiento_fga || data.vencimiento || null;
                     }
                 }
-                if (countRiv > 0) {
-                    multDefFGA = (sumFgaAll / countRiv) / 89.0;
-                    multDef3PA = (sum3paAll / countRiv) / 35.0;
+
+                // El administrador siempre tiene acceso sin importar la fecha, o si tiene fecha vigente
+                if (user.email === "ricardodica29@gmail.com" || tieneMembresiaActiva(fechaVencimiento)) {
+                    authContainer.style.display = "none";
+                    expiredContainer.style.display = "none";
+                    appContainer.style.display = "block";
+                    document.getElementById('fechaJuego').valueAsDate = new Date();
+                    cargarPartidosDia();
+                } else {
+                    authContainer.style.display = "none";
+                    appContainer.style.display = "none";
+                    expiredContainer.style.display = "flex";
                 }
+            } catch (error) {
+                console.error("Error verificando membresía:", error);
             }
-
-            const proyeccionFGA = projRawFGA > 0 ? (projRawFGA * multDefFGA).toFixed(1) : "N/D";
-            const proyeccion3PA = projRaw3PA > 0 ? (projRaw3PA * multDef3PA).toFixed(1) : "N/D";
-
-            document.getElementById("capFecha").innerText = document.getElementById("fechaJuego").value;
-            document.getElementById("capNombre").innerText = jugadorSeleccionado.replace(/-/g, ' ');
-            document.getElementById("capMatchup").innerHTML = matchupActual;
-            document.getElementById("capFoto").src = fotoActual;
-            
-            document.getElementById("resFGA").innerText = proyeccionFGA;
-            document.getElementById("res3PA").innerText = proyeccion3PA;
-            
-            document.getElementById("zonaResultado").style.display = "block";
-
-        } catch (error) {
-            alert("Error: " + error.message);
-        } finally {
-            boton.disabled = false;
-            boton.innerHTML = 'Procesar Algoritmo Predictivo';
-        }
-    };
-
-    window.descargarImagen = function() {
-        const btn = document.getElementById("btnCompartir");
-        const originalText = btn.innerHTML;
-        btn.innerHTML = "Generando imagen de alta calidad...";
-        btn.disabled = true;
-
-        html2canvas(document.getElementById("captureArea"), {
-            useCORS: true,
-            allowTaint: false,
-            backgroundColor: "#151515",
-            scale: 2 
-        }).then(canvas => {
-            const link = document.createElement("a");
-            link.download = `Proyeccion_DICA_${jugadorSeleccionado.toUpperCase()}.png`;
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-            
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        }).catch(err => {
-            console.error(err);
-            alert("Hubo un problema al generar la imagen. Intenta desde la computadora.");
-            btn.innerHTML = originalText;
-            btn.disabled = false;
         });
-    }
-</script>
+
+        window.iniciarSesion = async function() {
+            const email = document.getElementById("txtEmail").value.trim();
+            const password = document.getElementById("txtPassword").value;
+            const btn = document.getElementById("btnEntrar");
+            const errDiv = document.getElementById("loginError");
+
+            errDiv.style.display = "none";
+            if (!email || !password) return errDiv.style.display = "block", errDiv.innerText = "Por favor ingresa correo y contraseña.";
+
+            btn.disabled = true; btn.innerText = "INGRESANDO...";
+            try { await signInWithEmailAndPassword(auth, email, password); }
+            catch (error) { errDiv.style.display = "block"; errDiv.innerText = "Correo o contraseña incorrectos."; }
+            finally { btn.disabled = false; btn.innerText = "ENTRAR"; }
+        };
+
+        window.cerrarSesion = function() { signOut(auth); };
+
+        let jugadorSeleccionado = null; let equipoJugador = null; let equipoRival = null;
+        let sedeDelJugadorHoy = null; let fotoActual = ""; let matchupActual = "";
+
+        const espnTeams = {
+            "atlanta-hawks": "atl", "boston-celtics": "bos", "brooklyn-nets": "bkn",
+            "charlotte-hornets": "cha", "chicago-bulls": "chi", "cleveland-cavaliers": "cle",
+            "dallas-mavericks": "dal", "denver-nuggets": "den", "detroit-pistons": "det",
+            "golden-state-warriors": "gs", "houston-rockets": "hou", "indiana-pacers": "ind",
+            "la-clippers": "lac", "los-angeles-lakers": "lal", "memphis-grizzlies": "mem",
+            "miami-heat": "mia", "milwaukee-bucks": "mil", "minnesota-timberwolves": "min",
+            "new-orleans-pelicans": "no", "new-york-knicks": "ny", "oklahoma-city-thunder": "okc",
+            "orlando-magic": "orl", "philadelphia-76ers": "phi", "phoenix-suns": "phx",
+            "portland-trail-blazers": "por", "sacramento-kings": "sac", "san-antonio-spurs": "sa",
+            "toronto-raptors": "tor", "utah-jazz": "uta", "washington-wizards": "was"
+        };
+        const getLogoEquipo = (idEquipo) => `https://a.espncdn.com/i/teamlogos/nba/500/${espnTeams[idEquipo] || 'nba'}.png`;
+        const getFotoJugador = (espnId) => espnId ? `https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/${espnId}.png&w=350&h=254` : `https://cdn.nba.com/headshots/nba/latest/260x190/fallback.png`; 
+
+        window.cargarPartidosDia = async function() {
+            const fecha = document.getElementById("fechaJuego").value;
+            const grid = document.getElementById("gridPartidos");
+            document.getElementById('zonaProyeccion').style.display = 'none';
+            document.getElementById('zonaResultado').style.display = 'none';
+            grid.innerHTML = '<div style="grid-column: span 2; text-align:center;">Buscando partidos...</div>';
+
+            try {
+                const partidoSnap = await getDoc(doc(db, "partidos_dia", fecha));
+                if (partidoSnap.exists()) {
+                    const juegos = partidoSnap.data().juegos || [];
+                    grid.innerHTML = '';
+                    if (juegos.length === 0) return grid.innerHTML = '<div style="grid-column: span 2; text-align:center;">No hay juegos programados.</div>';
+
+                    juegos.forEach((juego, index) => {
+                        grid.innerHTML += `
+                            <div class="tarjeta" id="tarjeta-${index}" onclick="seleccionarPartido(${index}, '${juego.visitante}', '${juego.local}')">
+                                <div class="equipo-nombre"><img src="${getLogoEquipo(juego.visitante)}" class="logo-equipo" crossorigin="anonymous"> ${juego.visitanteNombre}</div>
+                                <div class="equipo-rol">en</div>
+                                <div class="equipo-nombre"><img src="${getLogoEquipo(juego.local)}" class="logo-equipo" crossorigin="anonymous"> ${juego.localNombre}</div>
+                            </div>
+                        `;
+                    });
+                } else { grid.innerHTML = '<div style="grid-column: span 2; text-align:center;">No se encontró la jornada.</div>'; }
+            } catch (error) { grid.innerHTML = '<div style="color:red; grid-column: span 2;">Error de conexión.</div>'; }
+        };
+
+        window.seleccionarPartido = async function(index, idVisitante, idLocal) {
+            document.querySelectorAll('#gridPartidos .tarjeta').forEach(t => t.classList.remove('activa'));
+            document.getElementById(`tarjeta-${index}`).classList.add('activa');
+            document.getElementById('zonaProyeccion').style.display = 'block';
+            document.getElementById('zonaResultado').style.display = 'none';
+            jugadorSeleccionado = null;
+
+            const gridVis = document.getElementById("gridVisitantes"); const gridLoc = document.getElementById("gridLocales");
+            gridVis.innerHTML = 'Cargando...'; gridLoc.innerHTML = 'Cargando...';
+
+            try {
+                const [visitSnap, localSnap] = await Promise.all([ getDoc(doc(db, "rosters", idVisitante)), getDoc(doc(db, "rosters", idLocal)) ]);
+                gridVis.innerHTML = ''; gridLoc.innerHTML = '';
+
+                const renderJugador = (key, datosJugador, contenedor, equipoPropio, rival, sede) => {
+                    const fotoUrl = getFotoJugador(datosJugador.espn_id);
+                    contenedor.innerHTML += `
+                        <div class="tarjeta-jugador" id="jug-${key}" onclick="seleccionarJugador('${key}', '${equipoPropio}', '${rival}', '${sede}', '${fotoUrl}')">
+                            <div class="dorsal">${datosJugador.dorsal !== undefined ? datosJugador.dorsal : '-'}</div>
+                            <img src="${fotoUrl}" class="foto-jugador" crossorigin="anonymous" onerror="this.src='https://cdn.nba.com/headshots/nba/latest/260x190/fallback.png'">
+                            <div class="nombre-jugador">${key.replace(/-/g, ' ').toUpperCase()}</div>
+                        </div>
+                    `;
+                };
+
+                if (visitSnap.exists() && visitSnap.data().jugadores) Object.entries(visitSnap.data().jugadores).forEach(([key, datos]) => renderJugador(key, datos, gridVis, idVisitante, idLocal, 'V'));
+                if (localSnap.exists() && localSnap.data().jugadores) Object.entries(localSnap.data().jugadores).forEach(([key, datos]) => renderJugador(key, datos, gridLoc, idLocal, idVisitante, 'L'));
+            } catch (error) { gridVis.innerHTML = 'Error'; gridLoc.innerHTML = 'Error'; }
+        };
+
+        window.seleccionarJugador = function(idJugador, idEquipoPropio, idEquipoRival, sede, urlFoto) {
+            jugadorSeleccionado = idJugador; equipoJugador = idEquipoPropio; equipoRival = idEquipoRival;
+            sedeDelJugadorHoy = sede; fotoActual = urlFoto;
+            matchupActual = sede === 'L' 
+                ? `<img src="${getLogoEquipo(idEquipoPropio)}" class="cap-logo" crossorigin="anonymous"> vs <img src="${getLogoEquipo(idEquipoRival)}" class="cap-logo" crossorigin="anonymous">` 
+                : `<img src="${getLogoEquipo(idEquipoPropio)}" class="cap-logo" crossorigin="anonymous"> @ <img src="${getLogoEquipo(idEquipoRival)}" class="cap-logo" crossorigin="anonymous">`;
+            document.querySelectorAll('.tarjeta-jugador').forEach(t => t.classList.remove('activa'));
+            document.getElementById(`jug-${idJugador}`).classList.add('activa');
+        };
+
+        window.lanzarProyeccion = async function() {
+            if (!jugadorSeleccionado) return alert("Por favor selecciona un jugador.");
+            const boton = document.getElementById("btnCalcular");
+            boton.disabled = true; boton.innerHTML = 'Procesando Algoritmo...';
+
+            try {
+                const rosterSnap = await getDoc(doc(db, "rosters", equipoJugador));
+                if (!rosterSnap.exists()) throw new Error("Roster no encontrado");
+                const datosJugador = rosterSnap.data().jugadores[jugadorSeleccionado];
+                
+                let historial = [];
+                if(datosJugador && datosJugador.juegos) {
+                    for (const f in datosJugador.juegos) if (datosJugador.juegos[f].min > 0) historial.push({ fecha: f, ...datosJugador.juegos[f] });
+                }
+                historial.sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+                let sumMin = 0, sumFGA = 0, sum3PA = 0;
+                let l5Min = 0, l5FGA = 0, l53PA = 0, countL5 = 0;
+                let sedeMin = 0, sedeFGA = 0, sede3PA = 0, countSede = 0;
+
+                historial.forEach((g, idx) => {
+                    sumMin += g.min; sumFGA += g.fga; sum3PA += g.fg3a || 0;
+                    if (idx < 5) { l5Min += g.min; l5FGA += g.fga; l53PA += g.fg3a || 0; countL5++; }
+                    if (g.sede === sedeDelJugadorHoy) { sedeMin += g.min; sedeFGA += g.fga; sede3PA += g.fg3a || 0; countSede++; }
+                });
+
+                const ritmoFGA = ((sumMin>0?sumFGA/sumMin:0)*0.4) + ((l5Min>0?l5FGA/l5Min:0)*0.4) + ((sedeMin>0?sedeFGA/sedeMin:0)*0.2);
+                const ritmo3PA = ((sumMin>0?sum3PA/sumMin:0)*0.4) + ((l5Min>0?l53PA/l5Min:0)*0.4) + ((sedeMin>0?sede3PA/sedeMin:0)*0.2);
+                const minEsperados = l5Min > 0 ? (l5Min / countL5) : (sumMin > 0 ? sumMin / historial.length : 30);
+
+                let projRawFGA = ritmoFGA * minEsperados; let projRaw3PA = ritmo3PA * minEsperados;
+
+                const rivalSnap = await getDoc(doc(db, "equipos", equipoRival));
+                let multDefFGA = 1.0, multDef3PA = 1.0;
+                if (rivalSnap.exists() && rivalSnap.data().juegos) {
+                    let sumFgaAll = 0, sum3paAll = 0, countRiv = 0;
+                    for (const f in rivalSnap.data().juegos) {
+                        const rStats = rivalSnap.data().juegos[f];
+                        if (rStats.fga_allowed) { sumFgaAll += rStats.fga_allowed; sum3paAll += rStats.fg3a_allowed || (rStats.fga_allowed * 0.4); countRiv++; }
+                    }
+                    if (countRiv > 0) { multDefFGA = (sumFgaAll / countRiv) / 89.0; multDef3PA = (sum3paAll / countRiv) / 35.0; }
+                }
+
+                document.getElementById("capFecha").innerText = document.getElementById("fechaJuego").value;
+                document.getElementById("capNombre").innerText = jugadorSeleccionado.replace(/-/g, ' ');
+                document.getElementById("capMatchup").innerHTML = matchupActual;
+                document.getElementById("capFoto").src = fotoActual;
+                document.getElementById("resFGA").innerText = projRawFGA > 0 ? (projRawFGA * multDefFGA).toFixed(1) : "N/D";
+                document.getElementById("res3PA").innerText = projRaw3PA > 0 ? (projRaw3PA * multDef3PA).toFixed(1) : "N/D";
+                document.getElementById("zonaResultado").style.display = "block";
+
+            } catch (error) { alert("Error: " + error.message); } 
+            finally { boton.disabled = false; boton.innerHTML = 'Procesar Algoritmo Predictivo'; }
+        };
+
+        // Exportación nativa para celulares y PC
+        window.descargarImagen = function() {
+            const btn = document.getElementById("btnCompartir");
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "Generando tarjeta...";
+            btn.disabled = true;
+
+            const captureArea = document.getElementById("captureArea");
+
+            html2canvas(captureArea, {
+                useCORS: true,
+                allowTaint: false,
+                backgroundColor: "#151515",
+                scale: 2 
+            }).then(canvas => {
+                canvas.toBlob(blob => {
+                    if (!blob) {
+                        alert("Hubo un error generando la imagen.");
+                        return;
+                    }
+                    
+                    const fileName = `DICA_FGA_${jugadorSeleccionado.toUpperCase()}.png`;
+                    
+                    // Si está en un celular y el navegador soporta compartir archivos nativos
+                    if (navigator.canShare && navigator.canShare({ files: [new File([blob], fileName, { type: blob.type })] })) {
+                        const file = new File([blob], fileName, { type: blob.type });
+                        navigator.share({
+                            title: 'Proyección DICA NBA',
+                            files: [file]
+                        }).then(() => {
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                        }).catch(err => {
+                            // Si cancelan el menú de compartir
+                            descargaTradicional(blob, fileName, btn, originalText);
+                        });
+                    } else {
+                        // En computadora o navegadores que no soportan Web Share
+                        descargaTradicional(blob, fileName, btn, originalText);
+                    }
+                }, "image/png");
+            }).catch(err => {
+                console.error(err);
+                alert("Error técnico al generar la tarjeta.");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        };
+
+        function descargaTradicional(blob, fileName, btn, originalText) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.download = fileName;
+            link.href = url;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    </script>
 </body>
 </html>
-   
  
