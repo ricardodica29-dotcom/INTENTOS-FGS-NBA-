@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proyección de Tiros - DICA NBA</title>
+    <title>Proyección de Tiros - DICA NBA FGS</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a1a1a">
     <!-- Librería para capturar imagen -->
@@ -281,8 +282,8 @@
 
     <!-- 1. VISTA DE INICIO DE SESIÓN -->
     <div id="authContainer">
-        <img src="icon-192.png" alt="DICA NBA" class="login-logo" onerror="this.src='https://cdn.nba.com/logos/nba/fallback.svg'">
-        <h1 class="login-brand">DICA NBA</h1>
+        <img src="icon-192.png" alt="DICA NBA FGS" class="login-logo" onerror="this.src='https://cdn.nba.com/logos/nba/fallback.svg'">
+        <h1 class="login-brand">DICA NBA FGS</h1>
         <div class="login-author">By: Ricardo Dionicio</div>
 
         <div class="login-card">
@@ -298,7 +299,7 @@
         </div>
 
         <div class="login-footer-text">¿Todavía no tienes cuenta?</div>
-        <a href="https://wa.me/527298812937?text=Hola,%20me%20gustar%C3%ADa%20pedir%20informes%20para%20acceder%20a%20DICA%20NBA" target="_blank" class="btn-whatsapp-login">
+        <a href="https://wa.me/527298812937?text=Hola,%20me%20gustar%C3%ADa%20pedir%20informes%20para%20acceder%20a%20DICA%20NBA%20FGS" target="_blank" class="btn-whatsapp-login">
             <span>💬</span> PEDIR INFORMES
         </a>
     </div>
@@ -309,7 +310,7 @@
         <div class="expired-title">Sin acceso activo</div>
         <div class="expired-desc">Tu cuenta todavía no tiene una suscripción activa. Escríbeme por WhatsApp para activarla.</div>
 
-        <a href="https://wa.me/527298812937?text=Hola%20Ricardo,%20quiero%20activar/renovar%20mi%20suscripci%C3%B3n%20para%20DICA%20FGA" target="_blank" class="btn-whatsapp-expired">
+        <a href="https://wa.me/527298812937?text=Hola%20Ricardo,%20quiero%20activar/renovar%20mi%20suscripci%C3%B3n%20para%20DICA%20NBA%20FGS" target="_blank" class="btn-whatsapp-expired">
             <span>💬</span> Escribir por WhatsApp
         </a>
         <div class="phone-indicator">+52 729 881 2937</div>
@@ -321,7 +322,7 @@
     <div id="appContainer">
         <div class="top-bar">
             <div>
-                <div class="header-title">DICA NBA</div>
+                <div class="header-title">DICA NBA FGS</div>
                 <div class="header-subtitle">Vegas 3.0 • Modelo Predictivo de Tiros (FGA & 3PA)</div>
             </div>
             <button class="btn-cerrar-sesion" onclick="cerrarSesion()">Cerrar sesión</button>
@@ -345,7 +346,7 @@
         <div id="zonaResultado" class="resultado-container">
             <div id="captureArea" class="capture-box">
                 <div class="cap-header">
-                    DICA NBA <span style="color:#fff;">| PROYECCIONES</span>
+                    DICA NBA FGS <span style="color:#fff;">| PROYECCIONES</span>
                     <span class="cap-fecha" id="capFecha">00/00/00</span>
                 </div>
                 
@@ -369,7 +370,7 @@
                         <span id="res3PA">0.0</span>
                     </div>
                 </div>
-                <div class="formula-info">Analítica Avanzada DICA NBA • Vegas 3.0</div>
+                <div class="formula-info">Analítica Avanzada DICA NBA FGS • Vegas 3.0</div>
             </div>
             
             <!-- Botón exclusivo para admin -->
@@ -436,7 +437,6 @@
                 return;
             }
 
-            // Validar si es el administrador
             if (user.email === "ricardodica29@gmail.com") {
                 btnCompartir.style.display = "block";
             } else {
@@ -460,7 +460,6 @@
                     }
                 }
 
-                // El administrador siempre tiene acceso sin importar la fecha, o si tiene fecha vigente
                 if (user.email === "ricardodica29@gmail.com" || tieneMembresiaActiva(fechaVencimiento)) {
                     authContainer.style.display = "none";
                     expiredContainer.style.display = "none";
@@ -634,7 +633,6 @@
             finally { boton.disabled = false; boton.innerHTML = 'Procesar Algoritmo Predictivo'; }
         };
 
-        // Exportación nativa para celulares y PC
         window.descargarImagen = function() {
             const btn = document.getElementById("btnCompartir");
             const originalText = btn.innerHTML;
@@ -655,23 +653,20 @@
                         return;
                     }
                     
-                    const fileName = `DICA_FGA_${jugadorSeleccionado.toUpperCase()}.png`;
+                    const fileName = `DICA_FGS_${jugadorSeleccionado.toUpperCase()}.png`;
                     
-                    // Si está en un celular y el navegador soporta compartir archivos nativos
                     if (navigator.canShare && navigator.canShare({ files: [new File([blob], fileName, { type: blob.type })] })) {
                         const file = new File([blob], fileName, { type: blob.type });
                         navigator.share({
-                            title: 'Proyección DICA NBA',
+                            title: 'Proyección DICA NBA FGS',
                             files: [file]
                         }).then(() => {
                             btn.innerHTML = originalText;
                             btn.disabled = false;
                         }).catch(err => {
-                            // Si cancelan el menú de compartir
                             descargaTradicional(blob, fileName, btn, originalText);
                         });
                     } else {
-                        // En computadora o navegadores que no soportan Web Share
                         descargaTradicional(blob, fileName, btn, originalText);
                     }
                 }, "image/png");
@@ -697,5 +692,7 @@
         }
     </script>
 </body>
-</html>
+</html>        
+    
+
  
