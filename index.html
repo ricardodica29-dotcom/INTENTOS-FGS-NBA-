@@ -311,7 +311,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCVkgWnZa83EjXsLCMt9YxHVq6d6Nnrw7I",
@@ -384,15 +384,22 @@
             btnCompartir.style.display = esAdmin ? "block" : "none";
 
             try {
+                // El documento se llama igual que el correo (en minúsculas), como piden las reglas
                 let fechaVencimiento = null;
-                const snapUid = await getDoc(doc(db, "acceso_usuarios", user.uid));
-                if (snapUid.exists()) {
-                    // ESTRICTO: SOLO BUSCAMOS vence_fga PARA ESTA APLICACIÓN
-                    fechaVencimiento = snapUid.data().vence_fga || null;
-                } else {
-                    const q = query(collection(db, "acceso_usuarios"), where("email", "==", user.email));
-                    const snapQuery = await getDocs(q);
-                    if (!snapQuery.empty) fechaVencimiento = snapQuery.docs[0].data().vence_fga || null;
+                try {
+                    const snap = await getDoc(doc(db, "acceso_usuarios", (user.email || '').toLowerCase()));
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        // ESTRICTO: SOLO vence_fga PARA ESTA APLICACIÓN (primero el timestamp, luego el texto)
+                        if (data.vence_fga_ts && data.vence_fga_ts.toDate) {
+                            const t = data.vence_fga_ts.toDate();
+                            fechaVencimiento = `${t.getFullYear()}-${t.getMonth() + 1}-${t.getDate()}`;
+                        } else {
+                            fechaVencimiento = data.vence_fga || null;
+                        }
+                    }
+                } catch (e) {
+                    console.warn("No se pudo leer el acceso:", e);
                 }
 
                 if (esAdmin || tieneMembresiaActiva(fechaVencimiento)) {
