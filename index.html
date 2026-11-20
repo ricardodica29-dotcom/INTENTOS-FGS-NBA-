@@ -9,272 +9,155 @@
     <!-- Librería para capturar imagen -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #efe3cf;
             background-image: repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0,0,0,0.03) 40px, rgba(0,0,0,0.03) 41px);
-            margin: 0; 
-            padding: 20px; 
-            color: #333; 
+            margin: 0;
+            padding: 20px;
+            color: #333;
             min-height: 100vh;
             box-sizing: border-box;
         }
+        body.modal-abierto { overflow: hidden; }
 
         /* --- 1. PANTALLA LOGIN --- */
-        #authContainer {
-            max-width: 380px;
-            margin: 40px auto;
-            text-align: center;
-        }
-        .login-logo {
-            width: 90px;
-            height: 90px;
-            border-radius: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            margin-bottom: 12px;
-        }
-        .login-brand {
-            font-size: 38px;
-            font-weight: 900;
-            color: #1a1a1a;
-            letter-spacing: 1px;
-            margin: 0;
-            line-height: 1;
-        }
-        .login-author {
-            font-size: 13px;
-            color: #555;
-            font-weight: 600;
-            margin-top: 6px;
-            margin-bottom: 24px;
-        }
-        .login-card {
-            background: #fff;
-            border: 1px solid #dcd3c1;
-            border-radius: 8px;
-            padding: 24px;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.06);
-            text-align: left;
-        }
-        .login-label {
-            font-size: 13px;
-            font-weight: 700;
-            color: #444;
-            display: block;
-            margin-bottom: 6px;
-        }
-        .login-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #dcd6cc;
-            border-radius: 6px;
-            font-size: 15px;
-            background-color: #fffcf7;
-            box-sizing: border-box;
-            outline: none;
-            margin-bottom: 16px;
-        }
+        #authContainer { max-width: 380px; margin: 40px auto; text-align: center; }
+        .login-logo { width: 90px; height: 90px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); margin-bottom: 12px; }
+        .login-brand { font-size: 38px; font-weight: 900; color: #1a1a1a; letter-spacing: 1px; margin: 0; line-height: 1; }
+        .login-author { font-size: 13px; color: #555; font-weight: 600; margin-top: 6px; margin-bottom: 24px; }
+        .login-card { background: #fff; border: 1px solid #dcd3c1; border-radius: 8px; padding: 24px; box-shadow: 0 6px 16px rgba(0,0,0,0.06); text-align: left; }
+        .login-label { font-size: 13px; font-weight: 700; color: #444; display: block; margin-bottom: 6px; }
+        .login-input { width: 100%; padding: 12px; border: 1px solid #dcd6cc; border-radius: 6px; font-size: 15px; background-color: #fffcf7; box-sizing: border-box; outline: none; margin-bottom: 16px; }
         .login-input:focus { border-color: #c84414; }
-        .btn-entrar {
-            width: 100%;
-            background: #c84414;
-            color: #fff;
-            padding: 14px;
-            border: none;
-            border-radius: 6px;
-            font-size: 18px;
-            font-weight: 900;
-            cursor: pointer;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            transition: background 0.2s;
-        }
+        .btn-entrar { width: 100%; background: #c84414; color: #fff; padding: 14px; border: none; border-radius: 6px; font-size: 18px; font-weight: 900; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; transition: background 0.2s; }
         .btn-entrar:hover { background: #ab360d; }
-        .login-footer-text {
-            text-align: center;
-            font-size: 13px;
-            color: #666;
-            margin: 20px 0 10px 0;
-        }
-        .btn-whatsapp-login {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            background: #0f8a44;
-            color: #fff;
-            padding: 14px;
-            border-radius: 6px;
-            font-size: 15px;
-            font-weight: 800;
-            text-decoration: none;
-            box-sizing: border-box;
-            letter-spacing: 0.5px;
-            transition: background 0.2s;
-        }
+        .login-footer-text { text-align: center; font-size: 13px; color: #666; margin: 20px 0 10px 0; }
+        .btn-whatsapp-login { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: #0f8a44; color: #fff; padding: 14px; border-radius: 6px; font-size: 15px; font-weight: 800; text-decoration: none; box-sizing: border-box; letter-spacing: 0.5px; transition: background 0.2s; }
         .btn-whatsapp-login:hover { background: #0c6e37; }
-        .login-error {
-            color: #c84414;
-            font-size: 13px;
-            font-weight: bold;
-            margin-bottom: 12px;
-            display: none;
-            text-align: center;
-        }
+        .login-error { color: #c84414; font-size: 13px; font-weight: bold; margin-bottom: 12px; display: none; text-align: center; }
 
-        /* --- 2. PANTALLA BLOQUEO (SIN ACCESO ACTIVO) --- */
-        #expiredContainer {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #0c0d0e;
-            z-index: 9999;
-            padding: 30px 20px;
-            box-sizing: border-box;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: #fff;
-        }
-        .lock-badge {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: rgba(229, 160, 23, 0.12);
-            border: 2px solid rgba(229, 160, 23, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 24px;
-            font-size: 36px;
-        }
-        .expired-title {
-            font-size: 26px;
-            font-weight: 900;
-            color: #f7dfa5;
-            margin-bottom: 15px;
-            letter-spacing: -0.5px;
-        }
-        .expired-desc {
-            font-size: 15px;
-            color: #a0a5ad;
-            line-height: 1.5;
-            max-width: 320px;
-            margin-bottom: 35px;
-        }
-        .btn-whatsapp-expired {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            max-width: 340px;
-            background: #25d366;
-            color: #fff;
-            padding: 16px 20px;
-            border-radius: 12px;
-            font-size: 17px;
-            font-weight: 800;
-            text-decoration: none;
-            box-sizing: border-box;
-            box-shadow: 0 4px 14px rgba(37, 211, 102, 0.25);
-            transition: transform 0.15s, opacity 0.15s;
-        }
+        /* --- 2. PANTALLA BLOQUEO --- */
+        #expiredContainer { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: #0c0d0e; z-index: 9999; padding: 30px 20px; box-sizing: border-box; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #fff; }
+        .lock-badge { width: 80px; height: 80px; border-radius: 50%; background: rgba(229, 160, 23, 0.12); border: 2px solid rgba(229, 160, 23, 0.4); display: flex; align-items: center; justify-content: center; margin-bottom: 24px; font-size: 36px; }
+        .expired-title { font-size: 26px; font-weight: 900; color: #f7dfa5; margin-bottom: 15px; letter-spacing: -0.5px; }
+        .expired-desc { font-size: 15px; color: #a0a5ad; line-height: 1.5; max-width: 320px; margin-bottom: 35px; }
+        .btn-whatsapp-expired { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; max-width: 340px; background: #25d366; color: #fff; padding: 16px 20px; border-radius: 12px; font-size: 17px; font-weight: 800; text-decoration: none; box-sizing: border-box; box-shadow: 0 4px 14px rgba(37, 211, 102, 0.25); transition: transform 0.15s, opacity 0.15s; }
         .btn-whatsapp-expired:hover { opacity: 0.95; }
-        .phone-indicator {
-            font-size: 13px;
-            color: #555b66;
-            margin-top: 14px;
-            font-weight: 600;
-        }
-        .btn-logout-expired {
-            background: transparent;
-            color: #6c7380;
-            border: none;
-            font-size: 14px;
-            font-weight: 600;
-            margin-top: 35px;
-            cursor: pointer;
-            text-decoration: none;
-        }
+        .phone-indicator { font-size: 13px; color: #555b66; margin-top: 14px; font-weight: 600; }
+        .btn-logout-expired { background: transparent; color: #6c7380; border: none; font-size: 14px; font-weight: 600; margin-top: 35px; cursor: pointer; text-decoration: none; }
         .btn-logout-expired:hover { color: #fff; text-decoration: underline; }
 
-        /* --- 3. PANTALLA PRINCIPAL DE LA APP --- */
-        #appContainer {
-            display: none;
-            max-width: 800px;
-            margin: auto;
-        }
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
+        /* --- 3. APP --- */
+        #appContainer { display: none; max-width: 900px; margin: auto; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; }
         .header-title { font-size: 32px; font-weight: 900; color: #1a1a1a; margin: 0; text-transform: uppercase; letter-spacing: -1px; }
         .header-subtitle { font-size: 14px; color: #cc4400; margin-top: 2px; font-weight: bold; }
-        .btn-cerrar-sesion {
-            background: #2a2a2a;
-            color: #fff;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+        .btn-cerrar-sesion { background: #2a2a2a; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; }
         .btn-cerrar-sesion:hover { background: #444; }
 
-        .section-title { font-size: 14px; font-weight: bold; color: #555; margin-bottom: 10px; margin-top: 25px; }
-        input[type="date"] { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #dcd6cc; font-size: 16px; background-color: #fffcf7; outline: none; }
-        
+        .section-title { font-size: 14px; font-weight: bold; color: #555; margin-bottom: 10px; margin-top: 25px; display: flex; align-items: center; gap: 8px; }
+        input[type="date"] { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #dcd6cc; font-size: 16px; background-color: #fffcf7; outline: none; box-sizing: border-box; }
+
         .grid-tarjetas { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
         @media (max-width: 500px) { .grid-tarjetas { grid-template-columns: 1fr; } }
-        
         .tarjeta { background: #fff; border: 1px solid #e0dbd0; border-radius: 6px; padding: 15px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .tarjeta:hover { border-color: #b3b3b3; }
         .tarjeta.activa { border: 2px solid #cc4400; background-color: #fff9f2; }
-        
         .equipo-nombre { font-weight: bold; font-size: 16px; margin-bottom: 5px; display: flex; align-items: center; gap: 10px;}
         .logo-equipo { width: 30px; height: 30px; object-fit: contain; }
         .equipo-rol { font-size: 12px; color: #888; margin-left: 40px; margin-bottom: 15px;}
-        
-        .jugadores-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 15px; }
-        .tarjeta-jugador { background: #fff; border: 1px solid #e0dbd0; border-radius: 8px; padding: 12px 8px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; }
-        .tarjeta-jugador:hover { border-color: #b3b3b3; }
-        .tarjeta-jugador.activa { border: 2px solid #cc4400; background-color: #fff9f2; }
+
+        /* Barra de herramientas del roster */
+        .roster-tools { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        .roster-tools input { flex: 1; min-width: 180px; padding: 10px 12px; border: 1px solid #dcd6cc; border-radius: 6px; font-size: 15px; background: #fffcf7; outline: none; }
+        .roster-tools input:focus { border-color: #cc4400; }
+        .btn-toggle { background: #fff; border: 1px solid #cfc6b4; color: #444; padding: 10px 14px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .btn-toggle.on { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+        .leyenda { font-size: 12px; color: #777; margin-top: 8px; line-height: 1.5; }
+
+        .grupo-titulo { font-size: 11px; font-weight: 800; color: #999; text-transform: uppercase; letter-spacing: 1px; margin: 14px 0 0 2px; grid-column: 1 / -1; }
+        .jugadores-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-top: 10px; }
+        .tarjeta-jugador { background: #fff; border: 1px solid #e0dbd0; border-radius: 8px; padding: 12px 8px 10px; text-align: center; cursor: pointer; transition: all 0.15s; position: relative; }
+        .tarjeta-jugador:hover { border-color: #cc4400; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
+        .tarjeta-jugador.cat-titular { border-color: #cc4400; }
+        .tarjeta-jugador.cat-ocasional { opacity: 0.8; }
+        .tarjeta-jugador.cat-fuera { opacity: 0.55; filter: grayscale(0.6); }
+        .tarjeta-jugador.oculto { display: none; }
         .dorsal { position: absolute; top: -8px; left: -8px; background: #1a1a1a; color: #fff; font-size: 11px; font-weight: bold; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #fff;}
+        .badge { position: absolute; top: 6px; right: 6px; font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 10px; letter-spacing: 0.5px; }
+        .badge-titular { background: #cc4400; color: #fff; }
+        .badge-rotacion { background: #1a1a1a; color: #fff; }
+        .badge-ocasional { background: #e6dfd2; color: #666; }
+        .badge-fuera { background: #eee; color: #999; }
+        .alerta-lesion { position: absolute; top: 24px; right: 6px; font-size: 9px; font-weight: 800; color: #b45309; background: #fef3c7; padding: 1px 5px; border-radius: 8px; }
         .foto-jugador { width: 75px; height: 55px; object-fit: contain; object-position: top; margin-bottom: 8px; border-bottom: 1px solid #eee; }
         .nombre-jugador { font-size: 12px; font-weight: bold; color: #333; line-height: 1.2; text-transform: uppercase; }
-        
-        .btn-accion { width: 100%; background: #1a1a1a; color: #fff; padding: 16px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; margin-top: 25px; cursor: pointer; transition: all 0.2s; }
+        .mini-stats { font-size: 11px; color: #888; margin-top: 6px; }
+        .mini-proy { font-size: 12px; margin-top: 4px; color: #1a1a1a; font-weight: 700; }
+        .mini-proy b { color: #cc4400; }
+
+        /* --- MODAL DE PROYECCIÓN --- */
+        #modalProy { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 5000; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box; }
+        #modalProy.abierto { display: flex; }
+        .modal-sheet { background: #efe3cf; border-radius: 14px; width: 100%; max-width: 540px; max-height: 92vh; overflow-y: auto; padding: 16px; box-sizing: border-box; position: relative; animation: subir 0.2s ease-out; }
+        @keyframes subir { from { transform: translateY(30px); opacity: 0; } to { transform: none; opacity: 1; } }
+        @media (max-width: 560px) {
+            #modalProy { padding: 0; align-items: flex-end; }
+            .modal-sheet { border-radius: 16px 16px 0 0; max-height: 94vh; }
+        }
+        .btn-cerrar-modal { position: sticky; top: 0; float: right; z-index: 2; background: #1a1a1a; color: #fff; border: none; width: 34px; height: 34px; border-radius: 50%; font-size: 18px; cursor: pointer; margin: -4px -4px 0 0; }
+
+        /* Tarjeta social */
+        .capture-box { background: #151515; padding: 24px; border-radius: 12px; position: relative; overflow: hidden; clear: both; }
+        .cap-header { color: #cc4400; font-weight: 900; font-size: 16px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .cap-fecha { float: right; color: #888; font-weight: normal; font-size: 13px; margin-top: 2px; }
+        .cap-perfil { display: flex; align-items: center; gap: 18px; margin-bottom: 22px; }
+        .cap-foto-wrapper { width: 86px; height: 86px; flex-shrink: 0; border-radius: 50%; border: 3px solid #cc4400; overflow: hidden; background: #fff; display: flex; align-items: flex-end; justify-content: center; }
+        .cap-foto { width: 100%; height: 90%; object-fit: contain; object-position: bottom; }
+        .cap-nombre { font-size: 23px; font-weight: 900; color: #fff; text-transform: uppercase; margin-bottom: 5px; line-height: 1.1; }
+        .cap-matchup { font-size: 15px; color: #aaa; display: flex; align-items: center; gap: 8px; }
+        .cap-logo { width: 22px; height: 22px; object-fit: contain; }
+        .cap-rol { display: inline-block; margin-top: 6px; font-size: 10px; font-weight: 900; color: #151515; background: #cc4400; padding: 2px 8px; border-radius: 10px; letter-spacing: 1px; }
+        .grid-resultados { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .caja-res { background: #222; padding: 16px 10px; border-radius: 8px; border: 1px solid #333; text-align: center; }
+        .caja-res span.num { font-size: 40px; font-weight: 900; color: #cc4400; display: block; margin-top: 4px; }
+        .caja-res small { font-size: 12px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+        .caja-linea { font-size: 12px; color: #ddd; margin-top: 8px; font-weight: 700; min-height: 16px; }
+        .caja-linea .over { color: #4ade80; } .caja-linea .under { color: #f87171; }
+        .cap-contexto { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+        .cap-contexto div { background: #1d1d1d; border-radius: 6px; padding: 8px 4px; text-align: center; font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+        .cap-contexto b { display: block; font-size: 15px; color: #fff; margin-top: 2px; letter-spacing: 0; }
+        .formula-info { font-size: 10px; color: #666; margin-top: 18px; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Panel de ajustes y desglose */
+        .panel { background: #fff; border: 1px solid #e0dbd0; border-radius: 10px; padding: 14px; margin-top: 12px; }
+        .panel h4 { margin: 0 0 10px 0; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #555; }
+        .ajustes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .ajustes label { font-size: 11px; font-weight: 700; color: #666; display: block; margin-bottom: 4px; }
+        .ajustes input { width: 100%; padding: 10px; border: 1px solid #dcd6cc; border-radius: 6px; font-size: 16px; background: #fffcf7; box-sizing: border-box; outline: none; }
+        .ajustes input:focus { border-color: #cc4400; }
+        .prob-box { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .prob-item { background: #faf6ef; border-radius: 8px; padding: 10px; font-size: 12px; color: #555; line-height: 1.6; }
+        .prob-item strong { font-size: 13px; color: #1a1a1a; }
+        .verde { color: #15803d; font-weight: 800; } .rojo { color: #b91c1c; font-weight: 800; }
+        table.desglose { width: 100%; border-collapse: collapse; font-size: 13px; }
+        table.desglose th, table.desglose td { padding: 7px 6px; text-align: center; border-bottom: 1px solid #f0ebe2; }
+        table.desglose th { font-size: 11px; color: #888; text-transform: uppercase; }
+        table.desglose td:first-child, table.desglose th:first-child { text-align: left; font-weight: 700; color: #444; }
+        .factores { margin: 10px 0 0 0; padding: 0; list-style: none; font-size: 12px; color: #555; line-height: 1.8; }
+        .ult10 { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+        .ult10 span { font-size: 11px; font-weight: 800; padding: 3px 6px; border-radius: 4px; background: #eee; color: #555; }
+        .ult10 span.hit { background: #dcfce7; color: #15803d; }
+        .ult10 span.miss { background: #fee2e2; color: #b91c1c; }
+        .nota { font-size: 11px; color: #999; margin-top: 8px; }
+
+        .btn-accion { width: 100%; background: #1a1a1a; color: #fff; padding: 15px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; margin-top: 14px; cursor: pointer; transition: all 0.2s; }
         .btn-accion:hover { background: #333; }
         .btn-accion:disabled { background: #888; cursor: not-allowed; }
-        
         /* Botón oculto por defecto, se activa desde JS solo para el admin */
-        #btnCompartir { background: #cc4400; margin-top: 15px; display: none; }
+        #btnCompartir { background: #cc4400; display: none; }
         #btnCompartir:hover { background: #e64d00; }
-
-        /* TARJETA SOCIAL */
-        .resultado-container { display: none; margin-top: 25px; }
-        .capture-box { background: #151515; padding: 30px; border-radius: 12px; position: relative; overflow: hidden; }
-        .cap-header { color: #cc4400; font-weight: 900; font-size: 18px; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .cap-fecha { float: right; color: #888; font-weight: normal; font-size: 14px; margin-top: 2px; }
-        
-        .cap-perfil { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; }
-        .cap-foto-wrapper { width: 90px; height: 90px; border-radius: 50%; border: 3px solid #cc4400; overflow: hidden; background: #fff; display: flex; align-items: flex-end; justify-content: center; }
-        .cap-foto { width: 100%; height: 90%; object-fit: contain; object-position: bottom; }
-        .cap-nombre { font-size: 26px; font-weight: 900; color: #fff; text-transform: uppercase; margin-bottom: 5px; }
-        .cap-matchup { font-size: 16px; color: #aaa; display: flex; align-items: center; gap: 8px; }
-        .cap-logo { width: 22px; height: 22px; object-fit: contain; }
-        
-        .grid-resultados { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .caja-res { background: #222; padding: 20px; border-radius: 8px; border: 1px solid #333; text-align: center; }
-        .caja-res span { font-size: 42px; font-weight: 900; color: #cc4400; display: block; margin-top: 5px; }
-        .caja-res small { font-size: 13px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
-        .formula-info { font-size: 11px; color: #666; margin-top: 25px; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
 <body>
@@ -287,13 +170,10 @@
 
         <div class="login-card">
             <div id="loginError" class="login-error"></div>
-
             <label class="login-label">Correo electrónico</label>
             <input type="email" id="txtEmail" class="login-input" placeholder="correo@ejemplo.com" autocomplete="email">
-
             <label class="login-label">Contraseña</label>
             <input type="password" id="txtPassword" class="login-input" placeholder="••••••••" autocomplete="current-password">
-
             <button type="button" class="btn-entrar" id="btnEntrar" onclick="iniciarSesion()">ENTRAR</button>
         </div>
 
@@ -308,12 +188,10 @@
         <div class="lock-badge">🔒</div>
         <div class="expired-title">Sin acceso activo</div>
         <div class="expired-desc">Tu cuenta todavía no tiene una suscripción activa. Escríbeme por WhatsApp para activarla.</div>
-
         <a href="https://wa.me/527298812937?text=Hola%20Ricardo,%20quiero%20activar/renovar%20mi%20suscripci%C3%B3n%20para%20DICA%20NBA%20FGS" target="_blank" class="btn-whatsapp-expired">
             <span>💬</span> Escribir por WhatsApp
         </a>
         <div class="phone-indicator">+52 729 881 2937</div>
-
         <button type="button" class="btn-logout-expired" onclick="cerrarSesion()">Cerrar sesión</button>
     </div>
 
@@ -322,58 +200,98 @@
         <div class="top-bar">
             <div>
                 <div class="header-title">DICA NBA FGS</div>
-                <div class="header-subtitle">Vegas 3.0 • Modelo Predictivo de Tiros (FGA & 3PA)</div>
+                <div class="header-subtitle">Vegas 3.1 • Modelo Predictivo de Tiros (FGA & 3PA)</div>
             </div>
             <button class="btn-cerrar-sesion" onclick="cerrarSesion()">Cerrar sesión</button>
         </div>
-        
+
         <div class="section-title">Jornada</div>
         <input type="date" id="fechaJuego" onchange="cargarPartidosDia()">
 
         <div class="grid-tarjetas" id="gridPartidos"></div>
 
         <div id="zonaProyeccion" style="display: none;">
-            <div class="section-title">Roster Visitante:</div>
+            <div class="roster-tools">
+                <input type="search" id="buscarJugador" placeholder="🔍 Buscar jugador..." oninput="aplicarFiltros()">
+                <button class="btn-toggle" id="btnVerTodos" onclick="toggleVerTodos()">Mostrar todos</button>
+            </div>
+            <div class="leyenda">
+                Se muestran los que <b>juegan siempre</b>: <b style="color:#cc4400">TITULAR</b> = top 5 en minutos ·
+                <b>ROTACIÓN</b> = jugó 6+ de los últimos 10 partidos con 15+ min. Los ocasionales y los que no han jugado (lesionados o cambiados de equipo) quedan ocultos en "Mostrar todos".
+                Toca la foto para ver la proyección.
+            </div>
+
+            <div class="section-title" id="tituloVisitante">Roster Visitante:</div>
             <div class="jugadores-grid" id="gridVisitantes"></div>
-            
-            <div class="section-title">Roster Local:</div>
+
+            <div class="section-title" id="tituloLocal">Roster Local:</div>
             <div class="jugadores-grid" id="gridLocales"></div>
-
-            <button class="btn-accion" id="btnCalcular" onclick="lanzarProyeccion()">Procesar Algoritmo Predictivo</button>
         </div>
+    </div>
 
-        <div id="zonaResultado" class="resultado-container">
+    <!-- MODAL DE PROYECCIÓN -->
+    <div id="modalProy" onclick="if(event.target === this) cerrarModal()">
+        <div class="modal-sheet">
+            <button class="btn-cerrar-modal" onclick="cerrarModal()" aria-label="Cerrar">✕</button>
+
             <div id="captureArea" class="capture-box">
                 <div class="cap-header">
                     DICA NBA FGS <span style="color:#fff;">| PROYECCIONES</span>
-                    <span class="cap-fecha" id="capFecha">00/00/00</span>
+                    <span class="cap-fecha" id="capFecha">00/00/0000</span>
                 </div>
-                
                 <div class="cap-perfil">
-                    <div class="cap-foto-wrapper">
-                        <img id="capFoto" src="" class="cap-foto" crossorigin="anonymous">
-                    </div>
+                    <div class="cap-foto-wrapper"><img id="capFoto" src="" class="cap-foto" crossorigin="anonymous"></div>
                     <div>
                         <div class="cap-nombre" id="capNombre">Nombre Jugador</div>
                         <div class="cap-matchup" id="capMatchup">VS Rival</div>
+                        <span class="cap-rol" id="capRol">TITULAR</span>
                     </div>
                 </div>
-
                 <div class="grid-resultados">
                     <div class="caja-res">
                         <small>Tiros (FGA)</small>
-                        <span id="resFGA">0.0</span>
+                        <span class="num" id="resFGA">0.0</span>
+                        <div class="caja-linea" id="capLineaFGA"></div>
                     </div>
                     <div class="caja-res">
                         <small>Triples (3PA)</small>
-                        <span id="res3PA">0.0</span>
+                        <span class="num" id="res3PA">0.0</span>
+                        <div class="caja-linea" id="capLinea3PA"></div>
                     </div>
                 </div>
-                <div class="formula-info">Analítica Avanzada DICA NBA FGS • Vegas 3.0</div>
+                <div class="cap-contexto">
+                    <div>Min. esperados<b id="capMin">-</b></div>
+                    <div>FGA L5<b id="capL5">-</b></div>
+                    <div>Def. rival<b id="capDef">-</b></div>
+                </div>
+                <div class="formula-info">Analítica Avanzada DICA NBA FGS • Vegas 3.1</div>
             </div>
-            
+
             <!-- Botón exclusivo para admin -->
             <button id="btnCompartir" class="btn-accion" onclick="descargarImagen()">📸 Exportar Tarjeta para Redes</button>
+
+            <div class="panel">
+                <h4>Comparar con la línea</h4>
+                <div class="ajustes">
+                    <div><label>Línea FGA</label><input type="number" step="0.5" inputmode="decimal" id="inLineaFGA" placeholder="ej. 15.5" oninput="recalcular()"></div>
+                    <div><label>Línea 3PA</label><input type="number" step="0.5" inputmode="decimal" id="inLinea3PA" placeholder="ej. 5.5" oninput="recalcular()"></div>
+                    <div><label>Minutos (opcional)</label><input type="number" step="1" inputmode="decimal" id="inMinutos" placeholder="auto" oninput="recalcular()"></div>
+                </div>
+                <div class="prob-box">
+                    <div class="prob-item" id="probFGA"><strong>FGA</strong><br>Escribe la línea para ver probabilidades.</div>
+                    <div class="prob-item" id="prob3PA"><strong>3PA</strong><br>Escribe la línea para ver probabilidades.</div>
+                </div>
+                <div class="nota">Probabilidad calculada con distribución de Poisson sobre la proyección. "Últimos 10" es el historial real del jugador contra esa línea.</div>
+            </div>
+
+            <div class="panel">
+                <h4>Desglose del modelo</h4>
+                <table class="desglose">
+                    <thead><tr><th></th><th>PJ</th><th>MIN</th><th>FGA</th><th>3PA</th></tr></thead>
+                    <tbody id="tablaDesglose"></tbody>
+                </table>
+                <ul class="factores" id="listaFactores"></ul>
+            </div>
         </div>
     </div>
 
@@ -396,28 +314,40 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // ================= UTILIDADES =================
+        const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+        const fmt = (n, d = 1) => (n === null || n === undefined || isNaN(n)) ? '-' : Number(n).toFixed(d);
+        const prom = (arr, campo) => arr.length ? arr.reduce((s, g) => s + (g[campo] || 0), 0) / arr.length : null;
+
+        function fechaLocalHoy() {
+            const h = new Date();
+            return `${h.getFullYear()}-${String(h.getMonth() + 1).padStart(2, '0')}-${String(h.getDate()).padStart(2, '0')}`;
+        }
+        function diaAnterior(fechaISO) {
+            const [a, m, d] = fechaISO.split('-').map(Number);
+            const f = new Date(a, m - 1, d - 1);
+            return `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}`;
+        }
+        const fechaDMY = (iso) => { const [a, m, d] = (iso || '').split('-'); return d ? `${d}/${m}/${a}` : iso; };
+        const nombreBonito = (key, datos) => (datos && datos.nombre) ? datos.nombre : key.replace(/-/g, ' ');
+
+        // ================= ACCESO (sin cambios de lógica) =================
+        let esAdmin = false;
+
         function tieneMembresiaActiva(fechaStr) {
             if (!fechaStr) return false;
             let dia, mes, anio;
-
             if (fechaStr.includes('/')) {
                 const partes = fechaStr.split('/');
-                dia = parseInt(partes[0], 10);
-                mes = parseInt(partes[1], 10) - 1;
-                anio = parseInt(partes[2], 10);
+                dia = parseInt(partes[0], 10); mes = parseInt(partes[1], 10) - 1; anio = parseInt(partes[2], 10);
             } else if (fechaStr.includes('-')) {
                 const partes = fechaStr.split('-');
                 if (partes[0].length === 4) {
-                    anio = parseInt(partes[0], 10);
-                    mes = parseInt(partes[1], 10) - 1;
-                    dia = parseInt(partes[2], 10);
+                    anio = parseInt(partes[0], 10); mes = parseInt(partes[1], 10) - 1; dia = parseInt(partes[2], 10);
                 } else {
-                    dia = parseInt(partes[0], 10);
-                    mes = parseInt(partes[1], 10) - 1;
-                    anio = parseInt(partes[2], 10);
+                    dia = parseInt(partes[0], 10); mes = parseInt(partes[1], 10) - 1; anio = parseInt(partes[2], 10);
                 }
             } else { return false; }
-
             const fechaVencimiento = new Date(anio, mes, dia, 0, 0, 0);
             return new Date() < fechaVencimiento;
         }
@@ -433,39 +363,31 @@
                 appContainer.style.display = "none";
                 expiredContainer.style.display = "none";
                 btnCompartir.style.display = "none";
+                esAdmin = false;
+                cerrarModal();
                 return;
             }
 
-            if (user.email === "ricardodica29@gmail.com") {
-                btnCompartir.style.display = "block";
-            } else {
-                btnCompartir.style.display = "none";
-            }
+            esAdmin = user.email === "ricardodica29@gmail.com";
+            btnCompartir.style.display = esAdmin ? "block" : "none";
 
             try {
                 let fechaVencimiento = null;
-                const docRefUid = doc(db, "acceso_usuarios", user.uid);
-                const snapUid = await getDoc(docRefUid);
-
+                const snapUid = await getDoc(doc(db, "acceso_usuarios", user.uid));
                 if (snapUid.exists()) {
-                    const data = snapUid.data();
                     // ESTRICTO: SOLO BUSCAMOS vence_fga PARA ESTA APLICACIÓN
-                    fechaVencimiento = data.vence_fga || null;
+                    fechaVencimiento = snapUid.data().vence_fga || null;
                 } else {
                     const q = query(collection(db, "acceso_usuarios"), where("email", "==", user.email));
                     const snapQuery = await getDocs(q);
-                    if (!snapQuery.empty) {
-                        const data = snapQuery.docs[0].data();
-                        // ESTRICTO: SOLO BUSCAMOS vence_fga PARA ESTA APLICACIÓN
-                        fechaVencimiento = data.vence_fga || null;
-                    }
+                    if (!snapQuery.empty) fechaVencimiento = snapQuery.docs[0].data().vence_fga || null;
                 }
 
-                if (user.email === "ricardodica29@gmail.com" || tieneMembresiaActiva(fechaVencimiento)) {
+                if (esAdmin || tieneMembresiaActiva(fechaVencimiento)) {
                     authContainer.style.display = "none";
                     expiredContainer.style.display = "none";
                     appContainer.style.display = "block";
-                    document.getElementById('fechaJuego').valueAsDate = new Date();
+                    document.getElementById('fechaJuego').value = fechaLocalHoy(); // fecha local (antes usaba UTC)
                     cargarPartidosDia();
                 } else {
                     authContainer.style.display = "none";
@@ -482,10 +404,8 @@
             const password = document.getElementById("txtPassword").value;
             const btn = document.getElementById("btnEntrar");
             const errDiv = document.getElementById("loginError");
-
             errDiv.style.display = "none";
-            if (!email || !password) return errDiv.style.display = "block", errDiv.innerText = "Por favor ingresa correo y contraseña.";
-
+            if (!email || !password) { errDiv.style.display = "block"; errDiv.innerText = "Por favor ingresa correo y contraseña."; return; }
             btn.disabled = true; btn.innerText = "INGRESANDO...";
             try { await signInWithEmailAndPassword(auth, email, password); }
             catch (error) { errDiv.style.display = "block"; errDiv.innerText = "Correo o contraseña incorrectos."; }
@@ -494,9 +414,7 @@
 
         window.cerrarSesion = function() { signOut(auth); };
 
-        let jugadorSeleccionado = null; let equipoJugador = null; let equipoRival = null;
-        let sedeDelJugadorHoy = null; let fotoActual = ""; let matchupActual = "";
-
+        // ================= LOGOS Y FOTOS =================
         const espnTeams = {
             "atlanta-hawks": "atl", "boston-celtics": "bos", "brooklyn-nets": "bkn",
             "charlotte-hornets": "cha", "chicago-bulls": "chi", "cleveland-cavaliers": "cle",
@@ -509,177 +427,423 @@
             "portland-trail-blazers": "por", "sacramento-kings": "sac", "san-antonio-spurs": "sa",
             "toronto-raptors": "tor", "utah-jazz": "uta", "washington-wizards": "was"
         };
+        const FOTO_FALLBACK = 'https://cdn.nba.com/headshots/nba/latest/260x190/fallback.png';
         const getLogoEquipo = (idEquipo) => `https://a.espncdn.com/i/teamlogos/nba/500/${espnTeams[idEquipo] || 'nba'}.png`;
-        const getFotoJugador = (espnId) => espnId ? `https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/${espnId}.png&w=350&h=254` : `https://cdn.nba.com/headshots/nba/latest/260x190/fallback.png`; 
+        const getFotoJugador = (espnId) => espnId ? `https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/${encodeURIComponent(espnId)}.png&w=350&h=254` : FOTO_FALLBACK;
 
+        // ================= CACHÉ DE DATOS =================
+        let cacheRosters = {};
+        let cacheEquipos = {};
+        let ligaProm = null;
+
+        async function getRoster(id) {
+            if (!cacheRosters[id]) {
+                const s = await getDoc(doc(db, "rosters", id));
+                cacheRosters[id] = s.exists() ? (s.data().jugadores || {}) : {};
+            }
+            return cacheRosters[id];
+        }
+        async function getEquipoJuegos(id) {
+            if (!cacheEquipos[id]) {
+                const s = await getDoc(doc(db, "equipos", id));
+                cacheEquipos[id] = s.exists() ? (s.data().juegos || {}) : {};
+            }
+            return cacheEquipos[id];
+        }
+        // Promedio de liga calculado con los 30 equipos (antes fijo en 89 / 35)
+        async function getLigaProm() {
+            if (ligaProm) return ligaProm;
+            try {
+                const snap = await getDocs(collection(db, "equipos"));
+                let f = 0, t = 0, n = 0;
+                snap.forEach(d => {
+                    const juegos = d.data().juegos || {};
+                    cacheEquipos[d.id] = juegos;
+                    for (const k in juegos) {
+                        const j = juegos[k];
+                        if (j.fga_allowed) { f += j.fga_allowed; t += j.fg3a_allowed || j.fga_allowed * 0.4; n++; }
+                    }
+                });
+                ligaProm = n > 20 ? { fga: f / n, fg3a: t / n, calculado: true } : { fga: 89, fg3a: 35, calculado: false };
+            } catch (e) {
+                console.warn("No se pudo calcular el promedio de liga:", e);
+                ligaProm = { fga: 89, fg3a: 35, calculado: false };
+            }
+            return ligaProm;
+        }
+
+        // ================= ANÁLISIS DEL ROSTER =================
+        // Fechas en que jugó el equipo = días en que 5+ jugadores del roster tuvieron minutos
+        function fechasDelEquipo(jugadores, fechaCorte) {
+            const conteo = {};
+            Object.values(jugadores).forEach(j => {
+                for (const f in (j.juegos || {})) if (f < fechaCorte && j.juegos[f].min > 0) conteo[f] = (conteo[f] || 0) + 1;
+            });
+            return Object.keys(conteo).filter(f => conteo[f] >= 5).sort((a, b) => b.localeCompare(a));
+        }
+
+        function historialJugador(datos, fechaCorte) {
+            const juegos = (datos && datos.juegos) || {};
+            return Object.entries(juegos)
+                .filter(([f, g]) => f < fechaCorte && g && g.min > 0)
+                .map(([f, g]) => ({ fecha: f, min: +g.min || 0, fga: +g.fga || 0, fg3a: +g.fg3a || 0, sede: g.sede }))
+                .sort((a, b) => b.fecha.localeCompare(a.fecha));
+        }
+
+        function clasificarRoster(jugadores, fechaCorte) {
+            const fechasEq = fechasDelEquipo(jugadores, fechaCorte);
+            const ult10 = fechasEq.slice(0, 10);
+            const lista = Object.entries(jugadores).map(([key, datos]) => {
+                const hist = historialJugador(datos, fechaCorte);
+                const fechasJug = new Set(hist.map(h => h.fecha));
+                const histL10 = hist.filter(h => ult10.includes(h.fecha));
+                const jugadosL10 = histL10.length;
+                const minL10 = prom(histL10, 'min') || 0;
+                let cat;
+                if (ult10.length === 0) cat = 'ocasional';              // sin datos suficientes del equipo
+                else if (jugadosL10 >= 6 && minL10 >= 15) cat = 'rotacion';
+                else if (jugadosL10 >= 1) cat = 'ocasional';
+                else cat = 'fuera';                                     // no ha jugado en los últimos 10 del equipo
+                const noJugoUltimo = cat === 'rotacion' && ult10.length > 0 && !fechasJug.has(ult10[0]);
+                return { key, datos, hist, jugadosL10, minL10, cat, noJugoUltimo };
+            });
+            // Top 5 en minutos de la rotación = titulares
+            lista.filter(j => j.cat === 'rotacion').sort((a, b) => b.minL10 - a.minL10).slice(0, 5).forEach(j => j.cat = 'titular');
+            const orden = { titular: 0, rotacion: 1, ocasional: 2, fuera: 3 };
+            lista.sort((a, b) => orden[a.cat] - orden[b.cat] || b.minL10 - a.minL10);
+            return { lista, fechasEq };
+        }
+
+        // ================= MODELO VEGAS 3.1 =================
+        // Tasa por minuto; con "decay" los juegos recientes pesan más (0.95 por juego hacia atrás)
+        function tasaPorMin(lista, campo, decay) {
+            let t = 0, m = 0;
+            lista.forEach((g, i) => { const w = decay ? Math.pow(0.95, i) : 1; t += g[campo] * w; m += g.min * w; });
+            return m > 0 ? t / m : null;
+        }
+        // Promedia solo las partes con datos y re-normaliza los pesos
+        function ponderar(partes) {
+            const validas = partes.filter(([v, w]) => v !== null && w > 0);
+            const tw = validas.reduce((s, [, w]) => s + w, 0);
+            return tw ? validas.reduce((s, [v, w]) => s + v * w, 0) / tw : 0;
+        }
+
+        function factorDefensa(juegosRival, fechaCorte, liga) {
+            const lista = Object.entries(juegosRival)
+                .filter(([f, j]) => f < fechaCorte && j && j.fga_allowed)
+                .sort((a, b) => b[0].localeCompare(a[0]))
+                .slice(0, 15);
+            const n = lista.length;
+            if (!n) return { fga: 1, fg3a: 1, n: 0, fgaPerm: null, fg3aPerm: null };
+            const fgaPerm = lista.reduce((s, [, j]) => s + j.fga_allowed, 0) / n;
+            const fg3aPerm = lista.reduce((s, [, j]) => s + (j.fg3a_allowed || j.fga_allowed * 0.4), 0) / n;
+            const enc = n / (n + 5); // con pocos juegos el ajuste se acerca a 1 (evita exagerar)
+            return {
+                fga: 1 + (fgaPerm / liga.fga - 1) * enc,
+                fg3a: 1 + (fg3aPerm / liga.fg3a - 1) * enc,
+                n, fgaPerm, fg3aPerm
+            };
+        }
+
+        function proyectar(info, contexto, minutosManual) {
+            const hist = info.hist;
+            const l5 = hist.slice(0, 5);
+            const sede = hist.filter(g => g.sede === contexto.sede);
+            const pesoSede = 0.2 * Math.min(1, sede.length / 5);
+
+            const rFGA = ponderar([[tasaPorMin(hist, 'fga', true), 0.4], [tasaPorMin(l5, 'fga'), 0.4], [tasaPorMin(sede, 'fga', true), pesoSede]]);
+            const r3PA = ponderar([[tasaPorMin(hist, 'fg3a', true), 0.4], [tasaPorMin(l5, 'fg3a'), 0.4], [tasaPorMin(sede, 'fg3a', true), pesoSede]]);
+
+            const minAuto = l5.length ? prom(l5, 'min') : (hist.length ? prom(hist, 'min') : 0);
+            let minutos = (minutosManual > 0) ? minutosManual : minAuto;
+
+            const factores = [];
+            let fatiga = 1;
+            if (contexto.b2bPropio) { fatiga *= 0.97; factores.push('😴 Su equipo jugó ayer (back-to-back): −3%'); }
+            if (contexto.b2bRival)  { fatiga *= 1.02; factores.push('🔋 El rival jugó ayer (back-to-back): +2%'); }
+
+            const def = contexto.defensa;
+            const fga = rFGA * minutos * def.fga * fatiga;
+            const fg3a = r3PA * minutos * def.fg3a * fatiga;
+
+            return { fga, fg3a, minutos, minAuto, rFGA, r3PA, l5, sede, def, factores };
+        }
+
+        // Probabilidad de Over con Poisson: P(X > línea)
+        function probOver(media, linea) {
+            if (!(media > 0) || isNaN(linea)) return null;
+            const k = Math.floor(linea);
+            let p = Math.exp(-media), cdf = p;
+            for (let i = 1; i <= k; i++) { p *= media / i; cdf += p; }
+            return Math.max(0, Math.min(1, 1 - cdf));
+        }
+
+        // ================= ESTADO =================
+        let ctx = null;       // datos del partido seleccionado
+        let actual = null;    // jugador abierto en el modal
+        let verTodos = false;
+
+        // ================= PARTIDOS DEL DÍA =================
         window.cargarPartidosDia = async function() {
             const fecha = document.getElementById("fechaJuego").value;
             const grid = document.getElementById("gridPartidos");
             document.getElementById('zonaProyeccion').style.display = 'none';
-            document.getElementById('zonaResultado').style.display = 'none';
-            grid.innerHTML = '<div style="grid-column: span 2; text-align:center;">Buscando partidos...</div>';
+            cacheRosters = {}; // datos frescos al cambiar de jornada
+            ctx = null;
+            grid.innerHTML = '<div style="grid-column: 1 / -1; text-align:center;">Buscando partidos...</div>';
 
             try {
                 const partidoSnap = await getDoc(doc(db, "partidos_dia", fecha));
-                if (partidoSnap.exists()) {
-                    const juegos = partidoSnap.data().juegos || [];
-                    grid.innerHTML = '';
-                    if (juegos.length === 0) return grid.innerHTML = '<div style="grid-column: span 2; text-align:center;">No hay juegos programados.</div>';
+                if (!partidoSnap.exists()) { grid.innerHTML = '<div style="grid-column: 1 / -1; text-align:center;">No se encontró la jornada.</div>'; return; }
+                const juegos = partidoSnap.data().juegos || [];
+                if (juegos.length === 0) { grid.innerHTML = '<div style="grid-column: 1 / -1; text-align:center;">No hay juegos programados.</div>'; return; }
 
-                    juegos.forEach((juego, index) => {
-                        grid.innerHTML += `
-                            <div class="tarjeta" id="tarjeta-${index}" onclick="seleccionarPartido(${index}, '${juego.visitante}', '${juego.local}')">
-                                <div class="equipo-nombre"><img src="${getLogoEquipo(juego.visitante)}" class="logo-equipo" crossorigin="anonymous"> ${juego.visitanteNombre}</div>
-                                <div class="equipo-rol">en</div>
-                                <div class="equipo-nombre"><img src="${getLogoEquipo(juego.local)}" class="logo-equipo" crossorigin="anonymous"> ${juego.localNombre}</div>
-                            </div>
-                        `;
-                    });
-                } else { grid.innerHTML = '<div style="grid-column: span 2; text-align:center;">No se encontró la jornada.</div>'; }
-            } catch (error) { grid.innerHTML = '<div style="color:red; grid-column: span 2;">Error de conexión.</div>'; }
+                grid.innerHTML = juegos.map((juego, index) => `
+                    <div class="tarjeta" data-index="${index}">
+                        <div class="equipo-nombre"><img src="${getLogoEquipo(juego.visitante)}" class="logo-equipo" crossorigin="anonymous"> ${esc(juego.visitanteNombre)}</div>
+                        <div class="equipo-rol">en</div>
+                        <div class="equipo-nombre"><img src="${getLogoEquipo(juego.local)}" class="logo-equipo" crossorigin="anonymous"> ${esc(juego.localNombre)}</div>
+                    </div>`).join('');
+                grid.querySelectorAll('.tarjeta').forEach(t => t.addEventListener('click', () => {
+                    const j = juegos[+t.dataset.index];
+                    seleccionarPartido(+t.dataset.index, j);
+                }));
+            } catch (error) {
+                console.error(error);
+                grid.innerHTML = '<div style="color:red; grid-column: 1 / -1;">Error de conexión.</div>';
+            }
         };
 
-        window.seleccionarPartido = async function(index, idVisitante, idLocal) {
-            document.querySelectorAll('#gridPartidos .tarjeta').forEach(t => t.classList.remove('activa'));
-            document.getElementById(`tarjeta-${index}`).classList.add('activa');
+        // ================= SELECCIONAR PARTIDO =================
+        async function seleccionarPartido(index, juego) {
+            document.querySelectorAll('#gridPartidos .tarjeta').forEach(t => t.classList.toggle('activa', +t.dataset.index === index));
             document.getElementById('zonaProyeccion').style.display = 'block';
-            document.getElementById('zonaResultado').style.display = 'none';
-            jugadorSeleccionado = null;
-
-            const gridVis = document.getElementById("gridVisitantes"); const gridLoc = document.getElementById("gridLocales");
+            document.getElementById('buscarJugador').value = '';
+            const gridVis = document.getElementById("gridVisitantes");
+            const gridLoc = document.getElementById("gridLocales");
             gridVis.innerHTML = 'Cargando...'; gridLoc.innerHTML = 'Cargando...';
+            document.getElementById('tituloVisitante').textContent = `Roster Visitante: ${juego.visitanteNombre || ''}`;
+            document.getElementById('tituloLocal').textContent = `Roster Local: ${juego.localNombre || ''}`;
+
+            const fecha = document.getElementById("fechaJuego").value;
+            const ayer = diaAnterior(fecha);
 
             try {
-                const [visitSnap, localSnap] = await Promise.all([ getDoc(doc(db, "rosters", idVisitante)), getDoc(doc(db, "rosters", idLocal)) ]);
-                gridVis.innerHTML = ''; gridLoc.innerHTML = '';
+                const [jugVis, jugLoc, liga] = await Promise.all([getRoster(juego.visitante), getRoster(juego.local), getLigaProm()]);
+                const [eqVis, eqLoc] = await Promise.all([getEquipoJuegos(juego.visitante), getEquipoJuegos(juego.local)]);
 
-                const renderJugador = (key, datosJugador, contenedor, equipoPropio, rival, sede) => {
-                    const fotoUrl = getFotoJugador(datosJugador.espn_id);
-                    contenedor.innerHTML += `
-                        <div class="tarjeta-jugador" id="jug-${key}" onclick="seleccionarJugador('${key}', '${equipoPropio}', '${rival}', '${sede}', '${fotoUrl}')">
-                            <div class="dorsal">${datosJugador.dorsal !== undefined ? datosJugador.dorsal : '-'}</div>
-                            <img src="${fotoUrl}" class="foto-jugador" crossorigin="anonymous" onerror="this.src='https://cdn.nba.com/headshots/nba/latest/260x190/fallback.png'">
-                            <div class="nombre-jugador">${key.replace(/-/g, ' ').toUpperCase()}</div>
-                        </div>
-                    `;
+                const rVis = clasificarRoster(jugVis, fecha);
+                const rLoc = clasificarRoster(jugLoc, fecha);
+
+                const jugoAyer = (r, eqJuegos) => r.fechasEq.includes(ayer) || !!eqJuegos[ayer];
+
+                ctx = {
+                    fecha, juego, liga,
+                    equipos: {
+                        [juego.visitante]: {
+                            roster: rVis, sede: 'V', rival: juego.local,
+                            defensa: factorDefensa(eqLoc, fecha, liga),
+                            b2bPropio: jugoAyer(rVis, eqVis), b2bRival: jugoAyer(rLoc, eqLoc)
+                        },
+                        [juego.local]: {
+                            roster: rLoc, sede: 'L', rival: juego.visitante,
+                            defensa: factorDefensa(eqVis, fecha, liga),
+                            b2bPropio: jugoAyer(rLoc, eqLoc), b2bRival: jugoAyer(rVis, eqVis)
+                        }
+                    }
                 };
 
-                if (visitSnap.exists() && visitSnap.data().jugadores) Object.entries(visitSnap.data().jugadores).forEach(([key, datos]) => renderJugador(key, datos, gridVis, idVisitante, idLocal, 'V'));
-                if (localSnap.exists() && localSnap.data().jugadores) Object.entries(localSnap.data().jugadores).forEach(([key, datos]) => renderJugador(key, datos, gridLoc, idLocal, idVisitante, 'L'));
-            } catch (error) { gridVis.innerHTML = 'Error'; gridLoc.innerHTML = 'Error'; }
+                renderRoster(gridVis, juego.visitante);
+                renderRoster(gridLoc, juego.local);
+                aplicarFiltros();
+            } catch (error) {
+                console.error(error);
+                gridVis.innerHTML = 'Error'; gridLoc.innerHTML = 'Error';
+            }
+        }
+
+        const ETIQUETA = { titular: 'TITULAR', rotacion: 'ROTACIÓN', ocasional: 'OCASIONAL', fuera: 'SIN JUGAR' };
+
+        function renderRoster(contenedor, idEquipo) {
+            const eq = ctx.equipos[idEquipo];
+            contenedor.innerHTML = eq.roster.lista.map(info => {
+                const p = proyectar(info, eq, 0);
+                info.proyBase = p;
+                const nombre = nombreBonito(info.key, info.datos);
+                const dorsal = info.datos.dorsal !== undefined ? info.datos.dorsal : '-';
+                const mini = info.jugadosL10 ? `${fmt(info.minL10)} min · ${info.jugadosL10}/10 PJ` : 'Sin juegos recientes';
+                const proy = p.fga > 0 ? `<div class="mini-proy">Proy <b>${fmt(p.fga)}</b> FGA · <b>${fmt(p.fg3a)}</b> 3PA</div>` : '';
+                return `
+                    <div class="tarjeta-jugador cat-${info.cat}" data-key="${esc(info.key)}" data-equipo="${esc(idEquipo)}" data-nombre="${esc(nombre.toLowerCase())}">
+                        <div class="dorsal">${esc(dorsal)}</div>
+                        <span class="badge badge-${info.cat}">${ETIQUETA[info.cat]}</span>
+                        ${info.noJugoUltimo ? '<span class="alerta-lesion">⚠ no jugó el último</span>' : ''}
+                        <img src="${getFotoJugador(info.datos.espn_id)}" class="foto-jugador" crossorigin="anonymous" onerror="this.onerror=null;this.src='${FOTO_FALLBACK}'">
+                        <div class="nombre-jugador">${esc(nombre.toUpperCase())}</div>
+                        <div class="mini-stats">${mini}</div>
+                        ${proy}
+                    </div>`;
+            }).join('') || '<div>Sin jugadores registrados.</div>';
+
+            contenedor.querySelectorAll('.tarjeta-jugador').forEach(card =>
+                card.addEventListener('click', () => abrirProyeccion(card.dataset.equipo, card.dataset.key)));
+        }
+
+        // ================= FILTROS =================
+        window.aplicarFiltros = function() {
+            const texto = document.getElementById('buscarJugador').value.trim().toLowerCase();
+            let ocultos = 0;
+            document.querySelectorAll('#zonaProyeccion .tarjeta-jugador').forEach(card => {
+                const esRegular = card.classList.contains('cat-titular') || card.classList.contains('cat-rotacion');
+                const coincide = !texto || card.dataset.nombre.includes(texto);
+                // Si se busca por nombre, se muestra aunque no sea regular
+                const visible = coincide && (verTodos || esRegular || texto);
+                card.classList.toggle('oculto', !visible);
+                if (!esRegular && !verTodos && !texto) ocultos++;
+            });
+            const btn = document.getElementById('btnVerTodos');
+            btn.classList.toggle('on', verTodos);
+            btn.textContent = verTodos ? 'Solo los que juegan' : `Mostrar todos (${ocultos} ocultos)`;
+        };
+        window.toggleVerTodos = function() { verTodos = !verTodos; aplicarFiltros(); };
+
+        // ================= MODAL DE PROYECCIÓN =================
+        function abrirProyeccion(idEquipo, key) {
+            if (!ctx) return;
+            const eq = ctx.equipos[idEquipo];
+            const info = eq.roster.lista.find(j => j.key === key);
+            if (!info) return;
+            actual = { idEquipo, info, eq };
+
+            const nombre = nombreBonito(key, info.datos);
+            const local = eq.sede === 'L';
+            document.getElementById("capFecha").innerText = fechaDMY(ctx.fecha);
+            document.getElementById("capNombre").innerText = nombre;
+            document.getElementById("capMatchup").innerHTML =
+                `<img src="${getLogoEquipo(idEquipo)}" class="cap-logo" crossorigin="anonymous"> ${local ? 'vs' : '@'} <img src="${getLogoEquipo(eq.rival)}" class="cap-logo" crossorigin="anonymous">`;
+            document.getElementById("capRol").innerText = ETIQUETA[info.cat];
+            const foto = document.getElementById("capFoto");
+            foto.onerror = () => { foto.onerror = null; foto.src = FOTO_FALLBACK; };
+            foto.src = getFotoJugador(info.datos.espn_id);
+
+            // Limpia los campos de línea al cambiar de jugador
+            document.getElementById('inLineaFGA').value = '';
+            document.getElementById('inLinea3PA').value = '';
+            document.getElementById('inMinutos').value = '';
+            document.getElementById('inMinutos').placeholder = `auto (${fmt(info.proyBase.minAuto)})`;
+
+            recalcular();
+            document.getElementById('modalProy').classList.add('abierto');
+            document.body.classList.add('modal-abierto');
+            document.querySelector('.modal-sheet').scrollTop = 0;
+        }
+
+        window.cerrarModal = function() {
+            document.getElementById('modalProy').classList.remove('abierto');
+            document.body.classList.remove('modal-abierto');
+        };
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModal(); });
+
+        function textoProb(media, linea, ult, campo, etiqueta) {
+            if (isNaN(linea)) return `<strong>${etiqueta}</strong><br>Escribe la línea para ver probabilidades.`;
+            const pO = probOver(media, linea);
+            if (pO === null) return `<strong>${etiqueta}</strong><br>Sin proyección disponible.`;
+            const pU = 1 - pO;
+            const hits = ult.filter(g => g[campo] > linea).length;
+            const chips = ult.map(g => `<span class="${g[campo] > linea ? 'hit' : 'miss'}">${g[campo]}</span>`).join('');
+            const lado = pO >= 0.5 ? `<span class="verde">OVER ${(pO * 100).toFixed(0)}%</span>` : `<span class="rojo">UNDER ${(pU * 100).toFixed(0)}%</span>`;
+            return `<strong>${etiqueta} ${linea}</strong> → ${lado}<br>
+                    Over ${(pO * 100).toFixed(0)}% · Under ${(pU * 100).toFixed(0)}%<br>
+                    Ventaja: ${media - linea >= 0 ? '+' : ''}${fmt(media - linea)} tiros<br>
+                    Últimos ${ult.length}: <b>${hits}/${ult.length}</b> Over
+                    <div class="ult10">${chips}</div>`;
+        }
+
+        function lineaTarjeta(media, linea) {
+            if (isNaN(linea) || !(media > 0)) return '';
+            const pO = probOver(media, linea);
+            return pO >= 0.5
+                ? `Línea ${linea} · <span class="over">OVER ${(pO * 100).toFixed(0)}%</span>`
+                : `Línea ${linea} · <span class="under">UNDER ${((1 - pO) * 100).toFixed(0)}%</span>`;
+        }
+
+        window.recalcular = function() {
+            if (!actual) return;
+            const { info, eq } = actual;
+            const minManual = parseFloat(document.getElementById('inMinutos').value);
+            const p = proyectar(info, eq, minManual);
+            const lineaFGA = parseFloat(document.getElementById('inLineaFGA').value);
+            const linea3PA = parseFloat(document.getElementById('inLinea3PA').value);
+
+            document.getElementById("resFGA").innerText = p.fga > 0 ? fmt(p.fga) : "N/D";
+            document.getElementById("res3PA").innerText = p.fg3a > 0 ? fmt(p.fg3a) : "N/D";
+            document.getElementById("capLineaFGA").innerHTML = lineaTarjeta(p.fga, lineaFGA);
+            document.getElementById("capLinea3PA").innerHTML = lineaTarjeta(p.fg3a, linea3PA);
+            document.getElementById("capMin").innerText = fmt(p.minutos);
+            document.getElementById("capL5").innerText = fmt(prom(p.l5, 'fga'));
+            const pctDef = (p.def.fga - 1) * 100;
+            document.getElementById("capDef").innerText = p.def.n ? `${pctDef >= 0 ? '+' : ''}${pctDef.toFixed(0)}%` : '-';
+
+            const ult10 = info.hist.slice(0, 10);
+            document.getElementById('probFGA').innerHTML = textoProb(p.fga, lineaFGA, ult10, 'fga', 'FGA');
+            document.getElementById('prob3PA').innerHTML = textoProb(p.fg3a, linea3PA, ult10, 'fg3a', '3PA');
+
+            // Desglose
+            const fila = (titulo, arr) => `<tr><td>${titulo}</td><td>${arr.length}</td><td>${fmt(prom(arr, 'min'))}</td><td>${fmt(prom(arr, 'fga'))}</td><td>${fmt(prom(arr, 'fg3a'))}</td></tr>`;
+            document.getElementById('tablaDesglose').innerHTML =
+                fila('Temporada', info.hist) +
+                fila('Últimos 10', ult10) +
+                fila('Últimos 5', p.l5) +
+                fila(eq.sede === 'L' ? 'En casa' : 'De visita', p.sede);
+
+            const f = [];
+            f.push(`⏱️ Tiros por minuto: <b>${fmt(p.rFGA, 3)}</b> FGA · <b>${fmt(p.r3PA, 3)}</b> 3PA (temporada 40% · L5 40% · sede ${p.sede.length >= 5 ? '20' : Math.round(20 * p.sede.length / 5)}%)`);
+            f.push(`🕐 Minutos usados: <b>${fmt(p.minutos)}</b>${minManual > 0 ? ' (manual)' : ' (promedio L5)'}`);
+            if (p.def.n) {
+                const pct3 = (p.def.fg3a - 1) * 100;
+                f.push(`🛡️ Rival permite <b>${fmt(p.def.fgaPerm)}</b> FGA y <b>${fmt(p.def.fg3aPerm)}</b> 3PA (últ. ${p.def.n}) vs liga ${fmt(ctx.liga.fga)} / ${fmt(ctx.liga.fg3a)} → ${pctDef >= 0 ? '+' : ''}${pctDef.toFixed(1)}% FGA, ${pct3 >= 0 ? '+' : ''}${pct3.toFixed(1)}% 3PA`);
+            } else {
+                f.push('🛡️ Sin datos defensivos del rival: no se ajusta.');
+            }
+            if (!ctx.liga.calculado) f.push('ℹ️ Promedio de liga por defecto (89 / 35): no se pudo calcular.');
+            p.factores.forEach(x => f.push(x));
+            if (info.noJugoUltimo) f.push('⚠️ No jugó el último partido de su equipo: revisa el reporte de lesiones.');
+            if (info.cat === 'fuera') f.push('⚠️ No ha jugado en los últimos 10 partidos de este equipo.');
+            document.getElementById('listaFactores').innerHTML = f.map(x => `<li>${x}</li>`).join('');
         };
 
-        window.seleccionarJugador = function(idJugador, idEquipoPropio, idEquipoRival, sede, urlFoto) {
-            jugadorSeleccionado = idJugador; equipoJugador = idEquipoPropio; equipoRival = idEquipoRival;
-            sedeDelJugadorHoy = sede; fotoActual = urlFoto;
-            matchupActual = sede === 'L' 
-                ? `<img src="${getLogoEquipo(idEquipoPropio)}" class="cap-logo" crossorigin="anonymous"> vs <img src="${getLogoEquipo(idEquipoRival)}" class="cap-logo" crossorigin="anonymous">` 
-                : `<img src="${getLogoEquipo(idEquipoPropio)}" class="cap-logo" crossorigin="anonymous"> @ <img src="${getLogoEquipo(idEquipoRival)}" class="cap-logo" crossorigin="anonymous">`;
-            document.querySelectorAll('.tarjeta-jugador').forEach(t => t.classList.remove('activa'));
-            document.getElementById(`jug-${idJugador}`).classList.add('activa');
-        };
-
-        window.lanzarProyeccion = async function() {
-            if (!jugadorSeleccionado) return alert("Por favor selecciona un jugador.");
-            const boton = document.getElementById("btnCalcular");
-            boton.disabled = true; boton.innerHTML = 'Procesando Algoritmo...';
-
-            try {
-                const rosterSnap = await getDoc(doc(db, "rosters", equipoJugador));
-                if (!rosterSnap.exists()) throw new Error("Roster no encontrado");
-                const datosJugador = rosterSnap.data().jugadores[jugadorSeleccionado];
-                
-                let historial = [];
-                if(datosJugador && datosJugador.juegos) {
-                    for (const f in datosJugador.juegos) if (datosJugador.juegos[f].min > 0) historial.push({ fecha: f, ...datosJugador.juegos[f] });
-                }
-                historial.sort((a, b) => b.fecha.localeCompare(a.fecha));
-
-                let sumMin = 0, sumFGA = 0, sum3PA = 0;
-                let l5Min = 0, l5FGA = 0, l53PA = 0, countL5 = 0;
-                let sedeMin = 0, sedeFGA = 0, sede3PA = 0, countSede = 0;
-
-                historial.forEach((g, idx) => {
-                    sumMin += g.min; sumFGA += g.fga; sum3PA += g.fg3a || 0;
-                    if (idx < 5) { l5Min += g.min; l5FGA += g.fga; l53PA += g.fg3a || 0; countL5++; }
-                    if (g.sede === sedeDelJugadorHoy) { sedeMin += g.min; sedeFGA += g.fga; sede3PA += g.fg3a || 0; countSede++; }
-                });
-
-                const ritmoFGA = ((sumMin>0?sumFGA/sumMin:0)*0.4) + ((l5Min>0?l5FGA/l5Min:0)*0.4) + ((sedeMin>0?sedeFGA/sedeMin:0)*0.2);
-                const ritmo3PA = ((sumMin>0?sum3PA/sumMin:0)*0.4) + ((l5Min>0?l53PA/l5Min:0)*0.4) + ((sedeMin>0?sede3PA/sedeMin:0)*0.2);
-                const minEsperados = l5Min > 0 ? (l5Min / countL5) : (sumMin > 0 ? sumMin / historial.length : 30);
-
-                let projRawFGA = ritmoFGA * minEsperados; let projRaw3PA = ritmo3PA * minEsperados;
-
-                const rivalSnap = await getDoc(doc(db, "equipos", equipoRival));
-                let multDefFGA = 1.0, multDef3PA = 1.0;
-                if (rivalSnap.exists() && rivalSnap.data().juegos) {
-                    let sumFgaAll = 0, sum3paAll = 0, countRiv = 0;
-                    for (const f in rivalSnap.data().juegos) {
-                        const rStats = rivalSnap.data().juegos[f];
-                        if (rStats.fga_allowed) { sumFgaAll += rStats.fga_allowed; sum3paAll += rStats.fg3a_allowed || (rStats.fga_allowed * 0.4); countRiv++; }
-                    }
-                    if (countRiv > 0) { multDefFGA = (sumFgaAll / countRiv) / 89.0; multDef3PA = (sum3paAll / countRiv) / 35.0; }
-                }
-
-                document.getElementById("capFecha").innerText = document.getElementById("fechaJuego").value;
-                document.getElementById("capNombre").innerText = jugadorSeleccionado.replace(/-/g, ' ');
-                document.getElementById("capMatchup").innerHTML = matchupActual;
-                document.getElementById("capFoto").src = fotoActual;
-                document.getElementById("resFGA").innerText = projRawFGA > 0 ? (projRawFGA * multDefFGA).toFixed(1) : "N/D";
-                document.getElementById("res3PA").innerText = projRaw3PA > 0 ? (projRaw3PA * multDef3PA).toFixed(1) : "N/D";
-                document.getElementById("zonaResultado").style.display = "block";
-
-            } catch (error) { alert("Error: " + error.message); } 
-            finally { boton.disabled = false; boton.innerHTML = 'Procesar Algoritmo Predictivo'; }
-        };
-
+        // ================= EXPORTAR TARJETA (ADMIN) =================
         window.descargarImagen = function() {
+            if (!actual) return;
             const btn = document.getElementById("btnCompartir");
             const originalText = btn.innerHTML;
+            const restaurar = () => { btn.innerHTML = originalText; btn.disabled = false; };
             btn.innerHTML = "Generando tarjeta...";
             btn.disabled = true;
 
-            const captureArea = document.getElementById("captureArea");
-
-            html2canvas(captureArea, {
-                useCORS: true,
-                allowTaint: false,
-                backgroundColor: "#151515",
-                scale: 2 
+            html2canvas(document.getElementById("captureArea"), {
+                useCORS: true, allowTaint: false, backgroundColor: "#151515", scale: 2
             }).then(canvas => {
                 canvas.toBlob(blob => {
-                    if (!blob) {
-                        alert("Hubo un error generando la imagen.");
-                        return;
-                    }
-                    
-                    const fileName = `DICA_FGS_${jugadorSeleccionado.toUpperCase()}.png`;
-                    
-                    if (navigator.canShare && navigator.canShare({ files: [new File([blob], fileName, { type: blob.type })] })) {
-                        const file = new File([blob], fileName, { type: blob.type });
-                        navigator.share({
-                            title: 'Proyección DICA NBA FGS',
-                            files: [file]
-                        }).then(() => {
-                            btn.innerHTML = originalText;
-                            btn.disabled = false;
-                        }).catch(err => {
-                            descargaTradicional(blob, fileName, btn, originalText);
-                        });
+                    if (!blob) { alert("Hubo un error generando la imagen."); restaurar(); return; }
+                    const fileName = `DICA_FGS_${actual.info.key.toUpperCase()}.png`;
+                    const file = new File([blob], fileName, { type: blob.type });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        navigator.share({ title: 'Proyección DICA NBA FGS', files: [file] })
+                            .then(restaurar)
+                            .catch(() => descargaTradicional(blob, fileName, restaurar));
                     } else {
-                        descargaTradicional(blob, fileName, btn, originalText);
+                        descargaTradicional(blob, fileName, restaurar);
                     }
                 }, "image/png");
             }).catch(err => {
                 console.error(err);
                 alert("Error técnico al generar la tarjeta.");
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+                restaurar();
             });
         };
 
-        function descargaTradicional(blob, fileName, btn, originalText) {
+        function descargaTradicional(blob, fileName, restaurar) {
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.download = fileName;
@@ -688,12 +852,10 @@
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-            btn.innerHTML = originalText;
-            btn.disabled = false;
+            restaurar();
         }
     </script>
 </body>
-</html>
-    
+</html>   
 
  
