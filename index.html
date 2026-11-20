@@ -6,8 +6,6 @@
     <title>Proyección de Tiros - DICA NBA FGS</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a1a1a">
-    <!-- Librería para capturar imagen -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -158,6 +156,12 @@
         /* Botón oculto por defecto, se activa desde JS solo para el admin */
         #btnCompartir { background: #cc4400; display: none; }
         #btnCompartir:hover { background: #e64d00; }
+        #zonaExport { display: none; margin-top: 12px; background: #fff; border: 1px solid #e0dbd0; border-radius: 10px; padding: 12px; text-align: center; }
+        #zonaExport img { width: 100%; max-width: 360px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); -webkit-touch-callout: default; }
+        .export-botones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .export-botones .btn-accion { margin-top: 0; font-size: 14px; padding: 13px; }
+        .btn-verde { background: #0f8a44 !important; }
+        .export-tip { font-size: 12px; color: #777; margin-top: 8px; }
     </style>
 </head>
 <body>
@@ -268,7 +272,15 @@
             </div>
 
             <!-- Botón exclusivo para admin -->
-            <button id="btnCompartir" class="btn-accion" onclick="descargarImagen()">📸 Exportar Tarjeta para Redes</button>
+            <button id="btnCompartir" class="btn-accion" onclick="generarTarjeta()">📸 Generar tarjeta para redes</button>
+            <div id="zonaExport">
+                <img id="imgExport" alt="Tarjeta DICA NBA FGS">
+                <div class="export-botones">
+                    <button class="btn-accion btn-verde" id="btnShare" onclick="compartirTarjeta()">📤 Compartir</button>
+                    <button class="btn-accion" onclick="descargarTarjeta()">⬇️ Descargar</button>
+                </div>
+                <div class="export-tip">Si no se guarda, mantén presionada la imagen y elige <b>"Guardar imagen"</b>.</div>
+            </div>
 
             <div class="panel">
                 <h4>Comparar con la línea</h4>
@@ -759,6 +771,12 @@
                     <div class="ult10">${chips}</div>`;
         }
 
+        function ladoLinea(media, linea) {
+            if (isNaN(linea) || !(media > 0)) return null;
+            const pO = probOver(media, linea);
+            return pO >= 0.5 ? { linea, lado: 'OVER', pct: Math.round(pO * 100) } : { linea, lado: 'UNDER', pct: Math.round((1 - pO) * 100) };
+        }
+
         function lineaTarjeta(media, linea) {
             if (isNaN(linea) || !(media > 0)) return '';
             const pO = probOver(media, linea);
@@ -783,6 +801,20 @@
             document.getElementById("capL5").innerText = fmt(prom(p.l5, 'fga'));
             const pctDef = (p.def.fga - 1) * 100;
             document.getElementById("capDef").innerText = p.def.n ? `${pctDef >= 0 ? '+' : ''}${pctDef.toFixed(0)}%` : '-';
+
+            // Datos para la imagen de redes (si cambian, la imagen anterior ya no sirve)
+            tarjetaDatos = {
+                nombre: nombreBonito(info.key, info.datos), key: info.key,
+                fecha: fechaDMY(ctx.fecha), rol: ETIQUETA[info.cat],
+                foto: getFotoJugador(info.datos.espn_id),
+                logoPropio: getLogoEquipo(actual.idEquipo), logoRival: getLogoEquipo(eq.rival),
+                local: eq.sede === 'L',
+                fga: p.fga > 0 ? fmt(p.fga) : 'N/D', fg3a: p.fg3a > 0 ? fmt(p.fg3a) : 'N/D',
+                lineaFGA: ladoLinea(p.fga, lineaFGA), linea3PA: ladoLinea(p.fg3a, linea3PA),
+                min: fmt(p.minutos), l5: fmt(prom(p.l5, 'fga')),
+                def: p.def.n ? `${pctDef >= 0 ? '+' : ''}${pctDef.toFixed(0)}%` : '-'
+            };
+            ocultarExport();
 
             const ult10 = info.hist.slice(0, 10);
             document.getElementById('probFGA').innerHTML = textoProb(p.fga, lineaFGA, ult10, 'fga', 'FGA');
@@ -813,49 +845,221 @@
         };
 
         // ================= EXPORTAR TARJETA (ADMIN) =================
-        window.descargarImagen = function() {
-            if (!actual) return;
-            const btn = document.getElementById("btnCompartir");
-            const originalText = btn.innerHTML;
-            const restaurar = () => { btn.innerHTML = originalText; btn.disabled = false; };
-            btn.innerHTML = "Generando tarjeta...";
-            btn.disabled = true;
+        // Se dibuja directo en un canvas 1080x1350 (formato Instagram 4:5).
+        // Paso 1: "Generar" crea la imagen y la muestra. Paso 2: "Compartir" (toque nuevo = el celular sí lo permite).
+        let tarjetaDatos = null;
+        let tarjetaBlob = null, tarjetaUrl = null, tarjetaNombre = '';
 
-            html2canvas(document.getElementById("captureArea"), {
-                useCORS: true, allowTaint: false, backgroundColor: "#151515", scale: 2
-            }).then(canvas => {
-                canvas.toBlob(blob => {
-                    if (!blob) { alert("Hubo un error generando la imagen."); restaurar(); return; }
-                    const fileName = `DICA_FGS_${actual.info.key.toUpperCase()}.png`;
-                    const file = new File([blob], fileName, { type: blob.type });
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        navigator.share({ title: 'Proyección DICA NBA FGS', files: [file] })
-                            .then(restaurar)
-                            .catch(() => descargaTradicional(blob, fileName, restaurar));
-                    } else {
-                        descargaTradicional(blob, fileName, restaurar);
-                    }
-                }, "image/png");
-            }).catch(err => {
-                console.error(err);
-                alert("Error técnico al generar la tarjeta.");
-                restaurar();
+        function ocultarExport() {
+            const z = document.getElementById('zonaExport');
+            if (z) z.style.display = 'none';
+            if (tarjetaUrl) { URL.revokeObjectURL(tarjetaUrl); tarjetaUrl = null; }
+            tarjetaBlob = null;
+        }
+
+        function conTimeout(promesa, ms) {
+            return Promise.race([promesa, new Promise(res => setTimeout(() => res(null), ms))]);
+        }
+
+        // Carga la imagen sin "contaminar" el canvas. Si ESPN no la deja usar, regresa null y se dibuja sin ella.
+        async function cargarImagen(url) {
+            const desdeBlob = (blob) => new Promise((res) => {
+                const u = URL.createObjectURL(blob);
+                const img = new Image();
+                img.onload = () => res(img);
+                img.onerror = () => res(null);
+                img.src = u;
             });
+            try {
+                const r = await conTimeout(fetch(url, { mode: 'cors' }), 8000);
+                if (r && r.ok) { const img = await desdeBlob(await r.blob()); if (img) return img; }
+            } catch (e) { /* sigue con el plan B */ }
+            return conTimeout(new Promise((res) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => res(img);
+                img.onerror = () => res(null);
+                img.src = url + (url.includes('?') ? '&' : '?') + 'dica=' + Date.now();
+            }), 8000);
+        }
+
+        function rect(c, x, y, w, h, r) {
+            c.beginPath();
+            c.moveTo(x + r, y);
+            c.arcTo(x + w, y, x + w, y + h, r);
+            c.arcTo(x + w, y + h, x, y + h, r);
+            c.arcTo(x, y + h, x, y, r);
+            c.arcTo(x, y, x + w, y, r);
+            c.closePath();
+        }
+
+        const FUENTE = "'Segoe UI', -apple-system, system-ui, Roboto, Helvetica, Arial, sans-serif";
+
+        async function dibujarTarjeta(d) {
+            const W = 1080, H = 1350;
+            const cv = document.createElement('canvas');
+            cv.width = W; cv.height = H;
+            const c = cv.getContext('2d');
+
+            const [foto, logoP, logoR] = await Promise.all([cargarImagen(d.foto), cargarImagen(d.logoPropio), cargarImagen(d.logoRival)]);
+
+            // Fondo
+            c.fillStyle = '#151515'; c.fillRect(0, 0, W, H);
+            c.fillStyle = '#cc4400'; c.fillRect(0, 0, W, 12);
+
+            // Encabezado
+            c.textBaseline = 'alphabetic';
+            c.font = `900 44px ${FUENTE}`; c.fillStyle = '#cc4400'; c.textAlign = 'left';
+            c.fillText('DICA NBA FGS', 70, 105);
+            const wMarca = c.measureText('DICA NBA FGS ').width;
+            c.fillStyle = '#ffffff'; c.fillText('| PROYECCIONES', 70 + wMarca, 105);
+            c.font = `400 34px ${FUENTE}`; c.fillStyle = '#888'; c.textAlign = 'right';
+            c.fillText(d.fecha, W - 70, 103);
+            c.fillStyle = '#333'; c.fillRect(70, 135, W - 140, 2);
+
+            // Foto en círculo
+            const cx = 220, cy = 330, r = 135;
+            c.save();
+            c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.closePath();
+            c.fillStyle = '#ffffff'; c.fill(); c.clip();
+            if (foto) {
+                const esc = (r * 2.2) / foto.width;
+                const fw = foto.width * esc, fh = foto.height * esc;
+                c.drawImage(foto, cx - fw / 2, cy + r - fh, fw, fh);
+            } else {
+                c.fillStyle = '#cc4400'; c.font = `900 110px ${FUENTE}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+                c.fillText(d.nombre.split(' ').map(x => x[0] || '').join('').slice(0, 2).toUpperCase(), cx, cy);
+                c.textBaseline = 'alphabetic';
+            }
+            c.restore();
+            c.lineWidth = 9; c.strokeStyle = '#cc4400';
+            c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.stroke();
+
+            // Nombre (ajusta tamaño y hasta 2 renglones)
+            const xTxt = 400, anchoMax = W - xTxt - 60;
+            const nombre = d.nombre.toUpperCase();
+            let tam = 70, lineas = [nombre];
+            c.textAlign = 'left'; c.fillStyle = '#ffffff';
+            for (; tam >= 44; tam -= 4) {
+                c.font = `900 ${tam}px ${FUENTE}`;
+                if (c.measureText(nombre).width <= anchoMax) { lineas = [nombre]; break; }
+                const pal = nombre.split(' ');
+                let corte = Math.ceil(pal.length / 2);
+                const l1 = pal.slice(0, corte).join(' '), l2 = pal.slice(corte).join(' ');
+                if (c.measureText(l1).width <= anchoMax && c.measureText(l2).width <= anchoMax) { lineas = [l1, l2]; break; }
+            }
+            let yN = lineas.length === 1 ? 300 : 260;
+            lineas.forEach((l, i) => c.fillText(l, xTxt, yN + i * (tam + 6)));
+            let yM = yN + (lineas.length - 1) * (tam + 6) + 75;
+
+            // Matchup: logo vs/@ logo
+            const tl = 64;
+            if (logoP) c.drawImage(logoP, xTxt, yM - tl + 10, tl, tl);
+            c.font = `700 40px ${FUENTE}`; c.fillStyle = '#aaa';
+            c.fillText(d.local ? 'vs' : '@', xTxt + tl + 18, yM - 8);
+            const wSep = c.measureText(d.local ? 'vs' : '@').width;
+            if (logoR) c.drawImage(logoR, xTxt + tl + 36 + wSep, yM - tl + 10, tl, tl);
+
+            // Pastilla del rol
+            c.font = `900 26px ${FUENTE}`;
+            const wRol = c.measureText(d.rol).width + 40;
+            rect(c, xTxt, yM + 30, wRol, 46, 23); c.fillStyle = '#cc4400'; c.fill();
+            c.fillStyle = '#151515'; c.fillText(d.rol, xTxt + 20, yM + 63);
+
+            // Cajas de resultados
+            const cajas = [
+                { x: 70, titulo: 'TIROS (FGA)', valor: d.fga, linea: d.lineaFGA },
+                { x: 555, titulo: 'TRIPLES (3PA)', valor: d.fg3a, linea: d.linea3PA }
+            ];
+            cajas.forEach(k => {
+                const y = 540, w = 455, h = 360;
+                rect(c, k.x, y, w, h, 18); c.fillStyle = '#222'; c.fill();
+                c.lineWidth = 2; c.strokeStyle = '#333'; c.stroke();
+                c.textAlign = 'center';
+                c.font = `600 30px ${FUENTE}`; c.fillStyle = '#aaa'; c.fillText(k.titulo, k.x + w / 2, y + 70);
+                c.font = `900 150px ${FUENTE}`; c.fillStyle = '#cc4400'; c.fillText(k.valor, k.x + w / 2, y + 240);
+                if (k.linea) {
+                    const t1 = `Línea ${k.linea.linea} · `, t2 = `${k.linea.lado} ${k.linea.pct}%`;
+                    c.font = `800 32px ${FUENTE}`;
+                    const w1 = c.measureText(t1).width, w2 = c.measureText(t2).width;
+                    const x0 = k.x + w / 2 - (w1 + w2) / 2;
+                    c.textAlign = 'left';
+                    c.fillStyle = '#ddd'; c.fillText(t1, x0, y + 315);
+                    c.fillStyle = k.linea.lado === 'OVER' ? '#4ade80' : '#f87171'; c.fillText(t2, x0 + w1, y + 315);
+                }
+            });
+
+            // Contexto
+            const ctxItems = [['MIN. ESPERADOS', d.min], ['FGA L5', d.l5], ['DEF. RIVAL', d.def]];
+            const wC = (W - 140 - 40) / 3;
+            ctxItems.forEach(([t, v], i) => {
+                const x = 70 + i * (wC + 20), y = 940;
+                rect(c, x, y, wC, 160, 14); c.fillStyle = '#1d1d1d'; c.fill();
+                c.textAlign = 'center';
+                c.font = `600 24px ${FUENTE}`; c.fillStyle = '#888'; c.fillText(t, x + wC / 2, y + 55);
+                c.font = `900 56px ${FUENTE}`; c.fillStyle = '#fff'; c.fillText(v, x + wC / 2, y + 125);
+            });
+
+            // Pie
+            c.textAlign = 'center';
+            c.font = `600 24px ${FUENTE}`; c.fillStyle = '#666';
+            c.fillText('ANALÍTICA AVANZADA DICA NBA FGS • VEGAS 3.1', W / 2, 1210);
+            c.font = `700 26px ${FUENTE}`; c.fillStyle = '#cc4400';
+            c.fillText('By: Ricardo Dionicio', W / 2, 1260);
+
+            return new Promise((res, rej) => {
+                try { cv.toBlob(b => b ? res(b) : rej(new Error('toBlob vacío')), 'image/png'); }
+                catch (e) { rej(e); }
+            });
+        }
+
+        window.generarTarjeta = async function() {
+            if (!tarjetaDatos) return;
+            const btn = document.getElementById("btnCompartir");
+            const original = btn.innerHTML;
+            btn.innerHTML = "Generando tarjeta..."; btn.disabled = true;
+            try {
+                ocultarExport();
+                tarjetaBlob = await dibujarTarjeta(tarjetaDatos);
+                tarjetaNombre = `DICA_FGS_${tarjetaDatos.key.toUpperCase()}.png`;
+                tarjetaUrl = URL.createObjectURL(tarjetaBlob);
+                document.getElementById('imgExport').src = tarjetaUrl;
+                const puedeCompartir = !!(navigator.canShare && navigator.canShare({ files: [new File([tarjetaBlob], tarjetaNombre, { type: 'image/png' })] }));
+                document.getElementById('btnShare').style.display = puedeCompartir ? 'block' : 'none';
+                document.querySelector('.export-botones').style.gridTemplateColumns = puedeCompartir ? '1fr 1fr' : '1fr';
+                const zona = document.getElementById('zonaExport');
+                zona.style.display = 'block';
+                zona.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } catch (e) {
+                console.error(e);
+                alert("No se pudo generar la tarjeta: " + e.message);
+            } finally {
+                btn.innerHTML = original; btn.disabled = false;
+            }
         };
 
-        function descargaTradicional(blob, fileName, restaurar) {
-            const url = URL.createObjectURL(blob);
+        window.compartirTarjeta = async function() {
+            if (!tarjetaBlob) return;
+            const file = new File([tarjetaBlob], tarjetaNombre, { type: 'image/png' });
+            try {
+                await navigator.share({ files: [file] }); // solo el archivo: WhatsApp/Instagram lo toman mejor
+            } catch (e) {
+                if (e.name !== 'AbortError') descargarTarjeta(); // si el usuario cancela no hacemos nada
+            }
+        };
+
+        window.descargarTarjeta = function() {
+            if (!tarjetaUrl) return;
             const link = document.createElement("a");
-            link.download = fileName;
-            link.href = url;
+            link.download = tarjetaNombre;
+            link.href = tarjetaUrl;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            restaurar();
-        }
+            // No se libera el URL de inmediato: en iPhone eso cancelaba la descarga
+        };
     </script>
 </body>
-</html>   
+</html>
 
  
