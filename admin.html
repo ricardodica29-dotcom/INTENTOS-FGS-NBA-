@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - DICA NBA FGS</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#1a1a1a">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #efe3cf; margin: 0; padding: 16px; color: #333; min-height: 100vh; }
+        .wrap { max-width: 760px; margin: auto; }
+        h1 { font-size: 26px; font-weight: 900; margin: 0; color: #1a1a1a; text-transform: uppercase; letter-spacing: -0.5px; }
+        .sub { font-size: 13px; color: #cc4400; font-weight: 700; margin-top: 2px; }
+        .top { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 16px; }
+        .card { background: #fff; border: 1px solid #e0dbd0; border-radius: 10px; padding: 16px; margin-bottom: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+        .card h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #555; margin: 0 0 12px 0; }
+        label { font-size: 12px; font-weight: 700; color: #555; display: block; margin-bottom: 4px; }
+        input, select { width: 100%; padding: 11px; border: 1px solid #dcd6cc; border-radius: 6px; font-size: 16px; background: #fffcf7; outline: none; }
+        input:focus, select:focus { border-color: #cc4400; }
+        .fila { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        @media (max-width: 520px) { .fila { grid-template-columns: 1fr; } }
+        .pass-wrap { display: flex; gap: 6px; }
+        .pass-wrap input { flex: 1; }
+        .btn { background: #1a1a1a; color: #fff; border: none; border-radius: 6px; padding: 12px 14px; font-size: 14px; font-weight: 800; cursor: pointer; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-naranja { background: #cc4400; }
+        .btn-verde { background: #0f8a44; }
+        .btn-gris { background: #e8e1d4; color: #333; }
+        .btn-rojo { background: #fff; color: #b91c1c; border: 1px solid #f1c4c4; }
+        .btn-full { width: 100%; padding: 15px; font-size: 16px; margin-top: 6px; }
+        .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+        .chip { padding: 9px 14px; border-radius: 20px; border: 1px solid #dcd6cc; background: #fffcf7; font-weight: 700; font-size: 14px; cursor: pointer; }
+        .chip.on { background: #cc4400; color: #fff; border-color: #cc4400; }
+        .msg { padding: 12px; border-radius: 8px; font-size: 14px; margin-top: 12px; display: none; white-space: pre-line; }
+        .msg.ok { display: block; background: #dcfce7; color: #14532d; }
+        .msg.err { display: block; background: #fee2e2; color: #7f1d1d; }
+        .msg.info { display: block; background: #fef3c7; color: #78350f; }
+        .bienvenida { margin-top: 12px; display: none; }
+        .bienvenida textarea { width: 100%; height: 150px; padding: 10px; border-radius: 6px; border: 1px solid #dcd6cc; font-size: 14px; font-family: inherit; background: #fffcf7; }
+        .bienvenida .acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+
+        .resumen { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+        .resumen div { background: #faf6ef; border-radius: 8px; padding: 10px 4px; text-align: center; font-size: 11px; color: #777; text-transform: uppercase; font-weight: 700; cursor: pointer; border: 2px solid transparent; }
+        .resumen div.on { border-color: #cc4400; }
+        .resumen b { display: block; font-size: 22px; color: #1a1a1a; }
+        .herr { display: flex; gap: 8px; margin-bottom: 12px; }
+        .herr input { flex: 1; }
+
+        .usuario { border: 1px solid #ece6da; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+        .u-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        .u-email { font-weight: 800; font-size: 15px; word-break: break-all; }
+        .u-nombre { font-size: 13px; color: #777; }
+        .estado { font-size: 11px; font-weight: 900; padding: 4px 9px; border-radius: 12px; white-space: nowrap; }
+        .e-activo { background: #dcfce7; color: #15803d; }
+        .e-porvencer { background: #fef3c7; color: #b45309; }
+        .e-vencido { background: #fee2e2; color: #b91c1c; }
+        .e-sin { background: #eee; color: #777; }
+        .u-vence { font-size: 13px; color: #555; margin: 8px 0; }
+        .u-acc { display: flex; gap: 6px; flex-wrap: wrap; }
+        .u-acc .btn { padding: 9px 11px; font-size: 13px; }
+        .u-fecha { display: none; gap: 6px; margin-top: 8px; }
+        .u-fecha.on { display: flex; }
+        .vacio { text-align: center; color: #888; padding: 20px; }
+
+        #login { max-width: 360px; margin: 60px auto; }
+        #panel { display: none; }
+        #noAdmin { display: none; text-align: center; margin-top: 80px; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+
+    <!-- LOGIN -->
+    <div id="login">
+        <div style="text-align:center; margin-bottom: 18px;">
+            <h1>DICA NBA FGS</h1>
+            <div class="sub">Panel de administración</div>
+        </div>
+        <div class="card">
+            <label>Correo</label>
+            <input type="email" id="adEmail" autocomplete="email" style="margin-bottom:10px">
+            <label>Contraseña</label>
+            <input type="password" id="adPass" autocomplete="current-password">
+            <button class="btn btn-naranja btn-full" id="btnLogin" onclick="entrar()" style="margin-top:14px">ENTRAR</button>
+            <div class="msg" id="loginMsg"></div>
+        </div>
+    </div>
+
+    <div id="noAdmin">
+        <h1>Sin permiso</h1>
+        <p>Esta sección es solo para el administrador.</p>
+        <button class="btn" onclick="salir()">Cerrar sesión</button>
+    </div>
+
+    <!-- PANEL -->
+    <div id="panel">
+        <div class="top">
+            <div>
+                <h1>Usuarios</h1>
+                <div class="sub">DICA NBA FGS • Panel admin</div>
+            </div>
+            <button class="btn" onclick="salir()">Salir</button>
+        </div>
+
+        <div class="card">
+            <label>Acceso que vas a administrar</label>
+            <select id="campoVence" onchange="render()"></select>
+            <div style="font-size:12px;color:#888;margin-top:6px">Cada app revisa su propio campo de vencimiento (FGS usa <b>vence_fga</b>; la principal usa <b>vence</b>). 🔑 = restablecer contraseña · 📱 = liberar dispositivos.</div>
+        </div>
+
+        <!-- ALTA -->
+        <div class="card">
+            <h2>➕ Dar de alta / activar usuario</h2>
+            <div class="fila">
+                <div><label>Correo del usuario *</label><input type="email" id="nEmail" placeholder="cliente@gmail.com"></div>
+                <div><label>Contraseña *</label>
+                    <div class="pass-wrap"><input type="text" id="nPass" placeholder="mínimo 6 caracteres"><button class="btn btn-gris" type="button" onclick="generarPass()">🎲</button></div>
+                </div>
+            </div>
+            <div class="fila">
+                <div><label>Nombre</label><input type="text" id="nNombre" placeholder="opcional"></div>
+                <div><label>WhatsApp</label><input type="tel" id="nTel" placeholder="10 dígitos (opcional)"></div>
+            </div>
+            <label>Tiempo de acceso</label>
+            <div class="chips" id="chipsDias">
+                <span class="chip" data-dias="7">7 días</span>
+                <span class="chip" data-dias="15">15 días</span>
+                <span class="chip on" data-dias="30">30 días</span>
+                <span class="chip" data-dias="90">90 días</span>
+                <span class="chip" data-dias="0">Fecha exacta</span>
+            </div>
+            <div id="wrapFecha" style="display:none; margin-bottom:10px"><label>Vence el día (el acceso termina a las 12:00 am de ese día)</label><input type="date" id="nFecha"></div>
+            <button class="btn btn-naranja btn-full" id="btnCrear" onclick="crearUsuario()">CREAR Y ACTIVAR</button>
+            <div class="msg" id="altaMsg"></div>
+            <div class="bienvenida" id="bienvenida">
+                <label>Mensaje para enviarle</label>
+                <textarea id="txtBienvenida"></textarea>
+                <div class="acciones">
+                    <button class="btn" onclick="copiarBienvenida()">📋 Copiar</button>
+                    <a class="btn btn-verde" id="lnkWhats" target="_blank" style="text-align:center;text-decoration:none">💬 Enviar por WhatsApp</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- LISTA -->
+        <div class="card">
+            <h2>👥 Usuarios registrados</h2>
+            <div class="resumen" id="resumen"></div>
+            <div class="herr">
+                <input type="search" id="buscar" placeholder="🔍 Buscar correo o nombre" oninput="render()">
+                <button class="btn btn-gris" onclick="cargarUsuarios()">↻</button>
+            </div>
+            <div id="lista"><div class="vacio">Cargando...</div></div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, initializeAuth, inMemoryPersistence, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, updateDoc, deleteDoc, getDoc, getDocs, collection, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // ====== CONFIGURACIÓN ======
+    const ADMIN = "ricardodica29@gmail.com";
+    // Cambia esta liga por la dirección donde tus usuarios abren la app:
+    const APP_URL = "https://ricardodica29-dotcom.github.io/DICA-NBA/";
+    const CAMPO_DEFAULT = "vence_fga";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCVkgWnZa83EjXsLCMt9YxHVq6d6Nnrw7I",
+        authDomain: "dica-nba.firebaseapp.com",
+        projectId: "dica-nba",
+        storageBucket: "dica-nba.firebasestorage.app",
+        messagingSenderId: "224764762732",
+        appId: "1:224764762732:web:7042fe57c93275c0549649"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // App "secundaria": crea cuentas nuevas SIN cerrar tu sesión de admin
+    const appSec = initializeApp(firebaseConfig, "altaUsuarios");
+    const authSec = initializeAuth(appSec, { persistence: inMemoryPersistence });
+
+    // ====== UTILIDADES DE FECHA ======
+    const pad = n => String(n).padStart(2, '0');
+    const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const dmy = d => d ? `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}` : '—';
+    const hoy0 = () => { const h = new Date(); return new Date(h.getFullYear(), h.getMonth(), h.getDate()); };
+    const sumarDias = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+
+    // Lee "dd/mm/aaaa", "aaaa-mm-dd", "dd-mm-aaaa" o Timestamp (mismo criterio que la app)
+    function leerFecha(v) {
+        if (!v) return null;
+        if (v.toDate) { const t = v.toDate(); return new Date(t.getFullYear(), t.getMonth(), t.getDate()); }
+        const s = String(v);
+        let p;
+        if (s.includes('/')) { p = s.split('/'); return new Date(+p[2], +p[1] - 1, +p[0]); }
+        if (s.includes('-')) {
+            p = s.split('-');
+            return p[0].length === 4 ? new Date(+p[0], +p[1] - 1, +p[2]) : new Date(+p[2], +p[1] - 1, +p[0]);
+        }
+        return null;
+    }
+    // Prefiere el campo *_ts (el que revisan las reglas); si no existe, usa el texto
+    const fechaDe = (u, campo) => leerFecha(u[campo + '_ts']) || leerFecha(u[campo]);
+    const NOMBRES = { vence_fga: 'DICA NBA FGS', vence: 'DICA NBA (principal)' };
+    // El acceso termina a las 12:00 am del día de vencimiento
+    function estadoDe(fecha) {
+        if (!fecha) return { clave: 'sin', txt: 'SIN ACCESO', dias: null };
+        const dias = Math.round((fecha - hoy0()) / 86400000);
+        if (dias <= 0) return { clave: 'vencido', txt: 'VENCIDO', dias };
+        if (dias <= 3) return { clave: 'porvencer', txt: `VENCE EN ${dias} D`, dias };
+        return { clave: 'activo', txt: `ACTIVO · ${dias} D`, dias };
+    }
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    function mostrar(id, tipo, texto) { const el = document.getElementById(id); el.className = 'msg ' + tipo; el.textContent = texto; }
+    const datosVence = (campo, fecha) => ({ [campo]: iso(fecha), [campo + '_ts']: Timestamp.fromDate(fecha), actualizado: serverTimestamp() });
+
+    // ====== SESIÓN ======
+    window.entrar = async () => {
+        const btn = document.getElementById('btnLogin');
+        btn.disabled = true;
+        try { await signInWithEmailAndPassword(auth, document.getElementById('adEmail').value.trim(), document.getElementById('adPass').value); }
+        catch (e) { mostrar('loginMsg', 'err', 'Correo o contraseña incorrectos.'); }
+        finally { btn.disabled = false; }
+    };
+    window.salir = () => signOut(auth);
+
+    onAuthStateChanged(auth, user => {
+        document.getElementById('login').style.display = user ? 'none' : 'block';
+        document.getElementById('panel').style.display = user && user.email === ADMIN ? 'block' : 'none';
+        document.getElementById('noAdmin').style.display = user && user.email !== ADMIN ? 'block' : 'none';
+        if (user && user.email === ADMIN) cargarUsuarios();
+    });
+
+    // ====== ALTA ======
+    let diasSel = 30;
+    document.querySelectorAll('#chipsDias .chip').forEach(ch => ch.addEventListener('click', () => {
+        document.querySelectorAll('#chipsDias .chip').forEach(c => c.classList.remove('on'));
+        ch.classList.add('on');
+        diasSel = +ch.dataset.dias;
+        document.getElementById('wrapFecha').style.display = diasSel === 0 ? 'block' : 'none';
+    }));
+
+    window.generarPass = () => {
+        const letras = 'abcdefghjkmnpqrstuvwxyz', nums = '23456789';
+        let p = 'Dica';
+        for (let i = 0; i < 3; i++) p += letras[Math.floor(Math.random() * letras.length)];
+        for (let i = 0; i < 3; i++) p += nums[Math.floor(Math.random() * nums.length)];
+        document.getElementById('nPass').value = p;
+    };
+
+    function linkWhats(tel, texto) {
+        let d = String(tel || '').replace(/\D/g, '');
+        if (d.length === 10) d = '52' + d;
+        return d ? `https://wa.me/${d}?text=${encodeURIComponent(texto)}` : `https://wa.me/?text=${encodeURIComponent(texto)}`;
+    }
+
+    window.crearUsuario = async () => {
+        const email = document.getElementById('nEmail').value.trim().toLowerCase();
+        const pass = document.getElementById('nPass').value.trim();
+        const nombre = document.getElementById('nNombre').value.trim();
+        const tel = document.getElementById('nTel').value.trim();
+        const campo = document.getElementById('campoVence').value || CAMPO_DEFAULT;
+        document.getElementById('bienvenida').style.display = 'none';
+
+        if (!/^\S+@\S+\.\S+$/.test(email)) return mostrar('altaMsg', 'err', 'Escribe un correo válido.');
+        if (pass.length < 6) return mostrar('altaMsg', 'err', 'La contraseña debe tener al menos 6 caracteres.');
+        let vence;
+        if (diasSel === 0) {
+            vence = leerFecha(document.getElementById('nFecha').value);
+            if (!vence) return mostrar('altaMsg', 'err', 'Elige la fecha de vencimiento.');
+        } else vence = sumarDias(hoy0(), diasSel);
+
+        const btn = document.getElementById('btnCrear');
+        btn.disabled = true; btn.textContent = 'CREANDO...';
+        try {
+            // 1) Cuenta de acceso (Authentication)
+            let uid = null, yaExistia = false;
+            try {
+                const cred = await createUserWithEmailAndPassword(authSec, email, pass);
+                uid = cred.user.uid;
+                await signOut(authSec);
+            } catch (e) {
+                if (e.code === 'auth/email-already-in-use') yaExistia = true;
+                else throw e;
+            }
+
+            // 2) Documento de acceso (Firestore)
+            const datos = { email, ...datosVence(campo, vence) };
+            if (nombre) datos.nombre = nombre;
+            if (tel) datos.telefono = tel;
+            // El ID del documento es el correo en minúsculas (así lo piden tus reglas)
+            const ref = doc(db, 'acceso_usuarios', email);
+            const previo = await getDoc(ref);
+            if (!previo.exists()) datos.creado = serverTimestamp();
+            if (uid) datos.uid = uid;
+            await setDoc(ref, datos, { merge: true });
+
+            if (yaExistia) {
+                mostrar('altaMsg', 'info', `Ese correo ya tenía cuenta: se le activó el acceso hasta el ${dmy(vence)}.\nOjo: sigue usando SU contraseña de antes (la que escribiste no se aplicó). Si no la recuerda, usa "Restablecer contraseña" en la lista.`);
+            } else {
+                mostrar('altaMsg', 'ok', `✅ Usuario creado y activo hasta el ${dmy(vence)}.`);
+            }
+
+            const texto = `¡Bienvenido a DICA NBA FGS! 🏀\n\nEntra aquí: ${APP_URL}\nCorreo: ${email}\n${yaExistia ? 'Contraseña: la misma que ya tenías' : 'Contraseña: ' + pass}\n\nTu acceso vence el ${dmy(vence)}.\nSi es DICA, es excelencia. 🔥`;
+            document.getElementById('txtBienvenida').value = texto;
+            document.getElementById('lnkWhats').href = linkWhats(tel, texto);
+            document.getElementById('bienvenida').style.display = 'block';
+
+            ['nEmail', 'nPass', 'nNombre', 'nTel'].forEach(id => document.getElementById(id).value = '');
+            cargarUsuarios();
+        } catch (e) {
+            console.error(e);
+            const errores = {
+                'auth/invalid-email': 'El correo no es válido.',
+                'auth/weak-password': 'La contraseña es muy débil (mínimo 6 caracteres).',
+                'auth/operation-not-allowed': 'Activa "Correo/contraseña" en Firebase > Authentication > Método de acceso.',
+                'permission-denied': 'Firestore no te dejó guardar: revisa las reglas (ver instrucciones).'
+            };
+            mostrar('altaMsg', 'err', errores[e.code] || ('Error: ' + e.message));
+        } finally {
+            btn.disabled = false; btn.textContent = 'CREAR Y ACTIVAR';
+        }
+    };
+
+    window.copiarBienvenida = async () => {
+        const t = document.getElementById('txtBienvenida');
+        try { await navigator.clipboard.writeText(t.value); } catch { t.select(); document.execCommand('copy'); }
+        mostrar('altaMsg', 'ok', '📋 Mensaje copiado.');
+    };
+
+    // ====== LISTA ======
+    let usuarios = [];
+    let filtroEstado = 'todos';
+
+    window.cargarUsuarios = async () => {
+        document.getElementById('lista').innerHTML = '<div class="vacio">Cargando...</div>';
+        try {
+            const snap = await getDocs(collection(db, 'acceso_usuarios'));
+            usuarios = snap.docs.map(d => ({ id: d.id, ref: d.ref, ...d.data() }));
+            // Detecta los campos vence_* que existen (una app por campo)
+            const sel = document.getElementById('campoVence');
+            const actual = sel.value || CAMPO_DEFAULT;
+            const campos = new Set([CAMPO_DEFAULT]);
+            usuarios.forEach(u => Object.keys(u).forEach(k => {
+                if (k === 'vence' || k === 'vence_ts') campos.add('vence');
+                else if (k.startsWith('vence_')) campos.add(k.replace(/_ts$/, ''));
+            }));
+            sel.innerHTML = [...campos].map(c => `<option value="${esc(c)}">${NOMBRES[c] ? esc(NOMBRES[c]) + ' — ' : ''}${esc(c)}</option>`).join('');
+            sel.value = campos.has(actual) ? actual : CAMPO_DEFAULT;
+            render();
+        } catch (e) {
+            console.error(e);
+            document.getElementById('lista').innerHTML = `<div class="vacio">No se pudo leer la lista (${esc(e.code || e.message)}). Revisa las reglas de Firestore.</div>`;
+        }
+    };
+
+    window.filtrar = (f) => { filtroEstado = f; render(); };
+
+    window.render = () => {
+        const campo = document.getElementById('campoVence').value || CAMPO_DEFAULT;
+        const texto = document.getElementById('buscar').value.trim().toLowerCase();
+        const lista = usuarios.map(u => ({ u, fecha: fechaDe(u, campo) })).map(x => ({ ...x, est: estadoDe(x.fecha) }));
+
+        const cuenta = { activo: 0, porvencer: 0, vencido: 0, sin: 0 };
+        lista.forEach(x => cuenta[x.est.clave]++);
+        const caja = (k, t, n) => `<div class="${filtroEstado === k ? 'on' : ''}" onclick="filtrar('${k}')"><b>${n}</b>${t}</div>`;
+        document.getElementById('resumen').innerHTML =
+            caja('todos', 'Todos', lista.length) + caja('activo', 'Activos', cuenta.activo) +
+            caja('porvencer', 'Por vencer', cuenta.porvencer) + caja('vencido', 'Vencidos', cuenta.vencido + cuenta.sin);
+
+        const orden = { porvencer: 0, activo: 1, vencido: 2, sin: 3 };
+        const visibles = lista
+            .filter(x => filtroEstado === 'todos' || x.est.clave === filtroEstado || (filtroEstado === 'vencido' && x.est.clave === 'sin'))
+            .filter(x => !texto || (x.u.email || '').toLowerCase().includes(texto) || (x.u.nombre || '').toLowerCase().includes(texto))
+            .sort((a, b) => orden[a.est.clave] - orden[b.est.clave] || (a.est.dias ?? 9999) - (b.est.dias ?? 9999));
+
+        document.getElementById('lista').innerHTML = visibles.length ? visibles.map(({ u, fecha, est }) => `
+            <div class="usuario">
+                <div class="u-top">
+                    <div>
+                        <div class="u-email">${esc(u.email || '(sin correo)')}</div>
+                        ${u.nombre ? `<div class="u-nombre">${esc(u.nombre)}${u.telefono ? ' · ' + esc(u.telefono) : ''}</div>` : ''}
+                    </div>
+                    <span class="estado e-${est.clave}">${est.txt}</span>
+                </div>
+                <div class="u-vence">Vence: <b>${dmy(fecha)}</b></div>
+                <div class="u-acc">
+                    <button class="btn btn-naranja" onclick="renovar('${u.id}', 7)">+7 d</button>
+                    <button class="btn btn-naranja" onclick="renovar('${u.id}', 30)">+30 d</button>
+                    <button class="btn btn-gris" onclick="toggleFecha('${u.id}')">📅 Fecha</button>
+                    ${u.telefono ? `<button class="btn btn-verde" onclick="avisar('${u.id}')">💬</button>` : ''}
+                    <button class="btn btn-gris" onclick="resetPass('${u.id}')">🔑</button>
+                    <button class="btn btn-gris" onclick="liberarDispositivos('${u.id}')">📱</button>
+                    ${est.clave === 'activo' || est.clave === 'porvencer' ? `<button class="btn btn-rojo" onclick="suspender('${u.id}')">Suspender</button>` : ''}
+                </div>
+                <div class="u-fecha" id="f-${u.id}">
+                    <input type="date" id="fi-${u.id}" value="${fecha ? iso(fecha) : ''}">
+                    <button class="btn" onclick="guardarFecha('${u.id}')">Guardar</button>
+                </div>
+            </div>`).join('') : '<div class="vacio">No hay usuarios en este filtro.</div>';
+    };
+
+    const buscarU = id => usuarios.find(u => u.id === id);
+
+    async function guardarVence(id, fecha, aviso) {
+        const campo = document.getElementById('campoVence').value || CAMPO_DEFAULT;
+        const u = buscarU(id);
+        try {
+            const datos = datosVence(campo, fecha);
+            await updateDoc(u.ref, datos);
+            Object.assign(u, datos, { [campo]: iso(fecha) });
+            render();
+            if (aviso) alert(aviso);
+        } catch (e) {
+            console.error(e);
+            alert('No se pudo guardar: ' + (e.code || e.message));
+        }
+    }
+
+    // Renueva desde hoy si ya venció, o desde su fecha actual si sigue activo (no pierde días)
+    window.renovar = (id, dias) => {
+        const campo = document.getElementById('campoVence').value || CAMPO_DEFAULT;
+        const u = buscarU(id);
+        const actual = fechaDe(u, campo);
+        const base = actual && actual > hoy0() ? actual : hoy0();
+        const nueva = sumarDias(base, dias);
+        if (confirm(`¿Renovar ${u.email} +${dias} días?\nNuevo vencimiento: ${dmy(nueva)}`)) guardarVence(id, nueva);
+    };
+
+    window.toggleFecha = id => document.getElementById('f-' + id).classList.toggle('on');
+
+    window.guardarFecha = id => {
+        const f = leerFecha(document.getElementById('fi-' + id).value);
+        if (!f) return alert('Elige una fecha.');
+        guardarVence(id, f);
+    };
+
+    // Suspender = vence hoy. NO se borra nada: para reactivar solo renuevas.
+    window.suspender = id => {
+        const u = buscarU(id);
+        if (confirm(`¿Suspender a ${u.email}?\nPerderá el acceso de inmediato. No se borra su cuenta; puedes reactivarlo cuando renueve.`)) guardarVence(id, hoy0());
+    };
+
+    window.resetPass = async id => {
+        const u = buscarU(id);
+        if (!u.email || !confirm(`¿Enviar correo para restablecer contraseña a ${u.email}?`)) return;
+        try { await sendPasswordResetEmail(auth, u.email); alert('✅ Correo enviado. Que revise también su carpeta de spam.'); }
+        catch (e) { alert('No se pudo enviar: ' + (e.code || e.message)); }
+    };
+
+    // Borra sus dispositivos registrados (máx. 2) para que pueda entrar desde uno nuevo
+    window.liberarDispositivos = async id => {
+        const u = buscarU(id);
+        if (!confirm(`¿Liberar los dispositivos de ${u.email}?\nPodrá entrar desde un celular o compu nueva (vuelve a quedar en máximo 2).`)) return;
+        try { await deleteDoc(doc(db, 'sesiones', id)); alert('✅ Dispositivos liberados.'); }
+        catch (e) { alert('No se pudo: ' + (e.code || e.message)); }
+    };
+
+    window.avisar = id => {
+        const campo = document.getElementById('campoVence').value || CAMPO_DEFAULT;
+        const u = buscarU(id);
+        const f = fechaDe(u, campo);
+        const est = estadoDe(f);
+        const texto = est.clave === 'vencido' || est.clave === 'sin'
+            ? `Hola${u.nombre ? ' ' + u.nombre : ''} 👋 Tu acceso a DICA NBA FGS venció el ${dmy(f)}. ¿Lo renovamos? 🏀`
+            : `Hola${u.nombre ? ' ' + u.nombre : ''} 👋 Tu acceso a DICA NBA FGS está activo hasta el ${dmy(f)}. Entra aquí: ${APP_URL} 🏀`;
+        window.open(linkWhats(u.telefono, texto), '_blank');
+    };
+</script>
+</body>
+</html>
